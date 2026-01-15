@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MikroTik API Test Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        .button:hover { background: #0056b3; }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; }
+        .device-card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px; }
+        .status-online { border-left: 4px solid #28a745; }
+        .status-offline { border-left: 4px solid #dc3545; }
+        .endpoint { background: #e9ecef; padding: 10px; margin: 5px 0; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 MikroTik API Test Dashboard</h1>
+        
+        <div class="card">
+            <h2>📡 API Status</h2>
+            <div id="status">Checking connection...</div>
+            <button class="button" onclick="checkConnection()">Test Connection</button>
+        </div>
+        
+        <div class="card">
+            <h2>🌐 Internet-Connected Devices (Real-Time)</h2>
+            <div style="margin-bottom: 15px;">
+                <button class="button" onclick="loadInternetDevices()" style="background: #28a745;">🌐 Internet Connected</button>
+                <button class="button" onclick="loadActiveDevices()">🔥 Locally Active</button>
+                <button class="button" onclick="loadDevices()">All Devices</button>
+                <button class="button" onclick="loadSimpleDevices()">Simple Format</button>
+                <label style="margin-left: 15px;">
+                    Min Traffic Filter: 
+                    <select id="trafficFilter" onchange="loadActiveDevices()">
+                        <option value="100">100 bytes</option>
+                        <option value="500" selected>500 bytes</option>
+                        <option value="1024">1 KB</option>
+                        <option value="5120">5 KB</option>
+                        <option value="10240">10 KB</option>
+                    </select>
+                </label>
+            </div>
+            <div id="devices">Loading devices...</div>
+        </div>
+        
+        <div class="card">
+            <h2>📊 API Endpoints</h2>
+            <div class="endpoint">
+                <strong>GET /devices/internet</strong> - Real-time internet-connected devices only
+                <button class="button" onclick="testEndpoint('/devices/internet')">Test</button>
+            </div>
+            <div class="endpoint">
+                <strong>GET /devices/internet/simple</strong> - Internet devices simple format
+                <button class="button" onclick="testEndpoint('/devices/internet/simple')">Test</button>
+            </div>
+            <div class="endpoint">
+                <strong>GET /devices/active</strong> - Ultra-strict filter (devices with recent traffic only)
+                <button class="button" onclick="testEndpoint('/devices/active')">Test</button>
+            </div>
+            <div class="endpoint">
+                <strong>GET /devices</strong> - Full device info with bandwidth
+                <button class="button" onclick="testEndpoint('/devices')">Test</button>
+            </div>
+            <div class="endpoint">
+                <strong>GET /devices/simple</strong> - Simple format [{"ip", "mac", "hostname", "rx", "tx"}]
+                <button class="button" onclick="testEndpoint('/devices/simple')">Test</button>
+            </div>
+            <div class="endpoint">
+                <strong>GET /test</strong> - Connection test
+                <button class="button" onclick="testEndpoint('/test')">Test</button>
+            </div>
+            <div class="endpoint">
+                <strong>GET /health</strong> - Health check
+                <button class="button" onclick="testEndpoint('/health')">Test</button>
+            </div>
+            <div class="endpoint">
+                <strong>GET /dhcp</strong> - DHCP leases
+                <button class="button" onclick="testEndpoint('/dhcp')">Test</button>
+            </div>
+            <div class="endpoint">
+                <strong>GET /arp</strong> - ARP table
+                <button class="button" onclick="testEndpoint('/arp')">Test</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>📋 API Response</h2>
+            <pre id="response">No response yet...</pre>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        
+        async function apiCall(endpoint) {
+            try {
+                const response = await fetch(API_BASE + endpoint);
+                const data = await response.json();
+                return { success: response.ok, data, status: response.status };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+        
+        async function checkConnection() {
+            document.getElementById('status').innerHTML = 'Checking...';
+            const result = await apiCall('/test');
+            
+            if (result.success) {
+                document.getElementById('status').innerHTML = 
+                    `<span class="success">✅ Connected to MikroTik: ${result.data.mikrotik?.identity || 'Unknown'}</span>`;
+            } else {
+                document.getElementById('status').innerHTML = 
+                    `<span class="error">❌ Connection failed: ${result.error || result.data?.message || 'Unknown error'}</span>`;
+            }
+        }
+        
+        async function loadInternetDevices() {
+            document.getElementById('devices').innerHTML = 'Loading internet-connected devices...';
+            const result = await apiCall('/devices/internet');
+            
+            if (result.success && result.data.devices) {
+                const devicesHtml = result.data.devices.map(device => `
+                    <div class="device-card status-online">
+                        <strong>${device.hostname}</strong> 🌐 INTERNET ACTIVE<br>
+                        <small>IP: ${device.ip} | MAC: ${device.mac}</small><br>
+                        <small>RX: ${formatBytes(device.rx)} | TX: ${formatBytes(device.tx)} | Total: ${formatBytes(device.rx + device.tx)}</small><br>
+                        <small>Connections: ${device.connections} | Interface: ${device.interface}</small><br>
+                        <small>Last activity: ${new Date(device.lastActivity).toLocaleTimeString()}</small>
+                    </div>
+                `).join('');
+                
+                document.getElementById('devices').innerHTML = 
+                    `<div class="info">🌐 ${result.data.count} devices with ACTIVE internet connectivity:</div>${devicesHtml}`;
+            } else {
+                document.getElementById('devices').innerHTML = 
+                    `<span class="error">❌ Failed to load internet devices: ${result.error || result.data?.message}</span>`;
+            }
+        }
+
+        async function loadActiveDevices() {
+            document.getElementById('devices').innerHTML = 'Loading truly active devices...';
+            const minTraffic = document.getElementById('trafficFilter').value;
+            const result = await apiCall(`/devices/active?minTraffic=${minTraffic}`);
+            
+            if (result.success && result.data.devices) {
+                const devicesHtml = result.data.devices.map(device => `
+                    <div class="device-card status-online">
+                        <strong>${device.hostname}</strong> 🔥 ACTIVE<br>
+                        <small>IP: ${device.ip} | MAC: ${device.mac}</small><br>
+                        <small>RX: ${formatBytes(device.rx)} | TX: ${formatBytes(device.tx)} | Total: ${formatBytes(device.rx + device.tx)}</small><br>
+                        <small>Last seen: ${new Date(device.lastSeen).toLocaleTimeString()}</small>
+                    </div>
+                `).join('');
+                
+                document.getElementById('devices').innerHTML = 
+                    `<div class="info">🔥 ${result.data.count}/${result.data.totalScanned} devices with ≥${formatBytes(result.data.minTrafficFilter)} recent traffic:</div>${devicesHtml}`;
+            } else {
+                document.getElementById('devices').innerHTML = 
+                    `<span class="error">❌ Failed to load active devices: ${result.error || result.data?.message}</span>`;
+            }
+        }
+        
+        async function loadDevices() {
+            document.getElementById('devices').innerHTML = 'Loading all devices...';
+            const result = await apiCall('/devices');
+            
+            if (result.success && result.data.devices) {
+                const devicesHtml = result.data.devices.map(device => `
+                    <div class="device-card ${device.isActive ? 'status-online' : 'status-offline'}">
+                        <strong>${device.hostname}</strong> (${device.isActive ? 'Online' : 'Offline'})<br>
+                        <small>IP: ${device.ip} | MAC: ${device.mac}</small><br>
+                        <small>RX: ${formatBytes(device.rx)} | TX: ${formatBytes(device.tx)}</small><br>
+                        <small>Last seen: ${new Date(device.lastSeen).toLocaleTimeString()}</small>
+                    </div>
+                `).join('');
+                
+                document.getElementById('devices').innerHTML = 
+                    `<div class="info">Found ${result.data.count} devices:</div>${devicesHtml}`;
+            } else {
+                document.getElementById('devices').innerHTML = 
+                    `<span class="error">❌ Failed to load devices: ${result.error || result.data?.message}</span>`;
+            }
+        }
+        
+        async function loadSimpleDevices() {
+            document.getElementById('devices').innerHTML = 'Loading simple format...';
+            const result = await apiCall('/devices/simple');
+            
+            if (result.success) {
+                const devices = result.data;
+                if (Array.isArray(devices)) {
+                    const devicesHtml = devices.map(device => `
+                        <div class="device-card status-online">
+                            <strong>${device.hostname}</strong><br>
+                            <small>IP: ${device.ip} | MAC: ${device.mac}</small><br>
+                            <small>RX: ${formatBytes(device.rx)} | TX: ${formatBytes(device.tx)}</small>
+                        </div>
+                    `).join('');
+                    
+                    document.getElementById('devices').innerHTML = 
+                        `<div class="info">Simple format - ${devices.length} devices:</div>${devicesHtml}`;
+                } else {
+                    document.getElementById('devices').innerHTML = 
+                        `<span class="error">❌ Unexpected response format</span>`;
+                }
+            } else {
+                document.getElementById('devices').innerHTML = 
+                    `<span class="error">❌ Failed to load devices: ${result.error || result.data?.message}</span>`;
+            }
+        }
+        
+        async function testEndpoint(endpoint) {
+            const result = await apiCall(endpoint);
+            document.getElementById('response').textContent = JSON.stringify(result.data, null, 2);
+        }
+        
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Auto-check connection on load
+        window.onload = () => {
+            checkConnection();
+            loadInternetDevices(); // Start with internet-connected devices by default
+        };
+        
+        // Auto-refresh internet devices every 3 seconds for real-time updates
+        setInterval(loadInternetDevices, 3000);
+    </script>
+</body>
+</html>

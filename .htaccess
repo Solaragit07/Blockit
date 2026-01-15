@@ -1,0 +1,30 @@
+# public_html/.htaccess
+DirectoryIndex index.php
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+
+# Allow your legit hosts (and LAN IPs)
+RewriteCond %{HTTP_HOST} ^(localhost|127\.0\.0\.1|192\.168\.[0-9.]+|10\.[0-9.]+|172\.(1[6-9]|2[0-9]|3[0-1])\.[0-9.]+|blockit\.site|www\.blockit\.site)$ [NC]
+RewriteRule .* - [S=2]
+
+# Others → show block page (avoid loop)
+RewriteCond %{REQUEST_URI} !^/redirect_handler\.php$ [NC]
+RewriteRule ^ redirect_handler.php [L]
+
+# Normal app routing (pretty URLs)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L]
+</IfModule>
+
+
+# Apache 2.4 secure-file rules
+<FilesMatch "^\.(?!well-known/)">
+  Require all denied
+</FilesMatch>
+<FilesMatch "\.log$">
+  Require all denied
+</FilesMatch>

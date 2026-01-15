@@ -1,0 +1,627 @@
+/*
+ * BlockIT Custom Color Palette - Login Page Inspired
+ * Beautiful cyan/turquoise color scheme matching the login page
+ * 
+ * Color Scheme:
+ * - Primary: #0dcaf0 (light cyan/turquoise) 
+ * - Secondary: #087990 (darker teal)
+ * - Background: #b6effb (very light cyan)
+ * - Text: #1f2937 (dark gray), #6b7280 (medium gray)
+ */
+
+/* ========================================
+   ROOT COLOR VARIABLES - LOGIN PAGE COLORS
+   ======================================== */
+:root {
+    /* Primary Color Palette - From Login Page */
+    --login-primary: #0dcaf0;             /* Light cyan/turquoise (main login color) */
+    --login-secondary: #087990;           /* Darker teal (login gradient end) */
+    --login-background: #b6effb;          /* Very light cyan background */
+    
+    /* Sidebar Colors - Using Login Palette */
+    --sidebar-primary: #087990;           /* Darker teal for sidebar base */
+    --sidebar-hover: #0dcaf0;             /* Light cyan for hover */
+    --sidebar-active: #065c6b;            /* Even darker for active state */
+    --sidebar-light: rgba(182, 239, 251, 0.1); /* Light cyan overlay */
+    
+    /* Background Colors */
+    --dashboard-bg: #ffffff;              /* White dashboard background */
+    --content-bg: #f8fffe;               /* Very light cyan tint */
+    --card-bg: #ffffff;                   /* White card background */
+    
+    /* Text Colors - From Login Page */
+    --text-primary: #1f2937;             /* Dark gray (login page text) */
+    --text-secondary: #6b7280;           /* Medium gray (login page secondary) */
+    --text-muted: #9ca3af;               /* Light gray (login page muted) */
+    --text-label: #374151;               /* Darker gray for labels */
+    --text-white: #ffffff;               /* White text */
+    
+    /* Accent Colors - Based on Login Palette */
+    --cyan-primary: #0dcaf0;             /* Main cyan */
+    --cyan-hover: #22d3ee;               /* Lighter cyan hover */
+    --cyan-dark: #0891b2;                /* Darker cyan */
+    --teal-primary: #087990;             /* Main teal */
+    --teal-hover: #0ea5e9;               /* Teal hover effect */
+    
+    /* Status Colors - Harmonized with Cyan Theme */
+    --safe-blue: #0ea5e9;                /* Blue for safe browsing */
+    --safe-blue-light: #e0f2fe;          /* Light blue background */
+    --connected-green: #10b981;          /* Green for connected/allowed */
+    --connected-green-light: #d1fae5;    /* Light green background */
+    
+    /* Warning Colors */
+    --warning-orange: #f59e0b;           /* Orange for mild issues */
+    --warning-orange-light: #fef3c7;     /* Light orange background */
+    --danger-red: #ef4444;              /* Red for serious issues */
+    --danger-red-light: #fee2e2;        /* Light red background */
+}
+
+/* ========================================
+   SIDEBAR STYLING - LOGIN PAGE INSPIRED
+   ======================================== */
+.bg-gradient-custom {
+    background: linear-gradient(135deg, var(--sidebar-primary), var(--login-primary)) !important;
+    box-shadow: 0 0 20px rgba(13, 202, 240, 0.1);
+}
+
+.sidebar {
+    background: linear-gradient(135deg, var(--sidebar-primary), var(--login-primary)) !important;
+    border-right: 1px solid rgba(13, 202, 240, 0.2);
+}
+
+/* Sidebar Brand - Match Login Page Style */
+.sidebar-brand {
+    background: var(--sidebar-light) !important;
+    border-bottom: 1px solid rgba(13, 202, 240, 0.2);
+    padding: 1.5rem 1rem;
+}
+
+.sidebar-brand-text {
+    color: var(--text-white) !important;
+    font-weight: 700;
+    font-size: 1.2rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-brand-icon img {
+    filter: brightness(1.1) contrast(1.1);
+    box-shadow: 0 4px 8px rgba(13, 202, 240, 0.2);
+    border-radius: 50%;
+}
+
+/* Navigation Items - Login Page Style */
+.nav-item {
+    margin: 0.25rem 0.75rem;
+    border-radius: 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-item.active {
+    background: linear-gradient(135deg, var(--login-primary), var(--cyan-hover)) !important;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(13, 202, 240, 0.3);
+    transform: translateX(3px);
+}
+
+.nav-item.active .nav-link {
+    color: var(--text-white) !important;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.nav-item.active .nav-link i {
+    color: var(--text-white) !important;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+/* Hover effect - Match login page button hover */
+.nav-item:not(.active):hover {
+    background: linear-gradient(135deg, var(--cyan-hover), var(--login-primary)) !important;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(13, 202, 240, 0.25);
+    transform: translateY(-2px) translateX(2px);
+}
+
+.nav-item:not(.active):hover .nav-link {
+    color: var(--text-white) !important;
+    font-weight: 500;
+}
+
+.nav-item:not(.active):hover .nav-link i {
+    color: var(--text-white) !important;
+    transform: scale(1.05);
+}
+
+/* Default navigation links */
+.nav-item:not(.active) .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500;
+}
+
+.nav-item:not(.active) .nav-link i {
+    color: var(--login-primary) !important;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 0.4rem;
+    border-radius: 8px;
+    margin-right: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+/* Sidebar divider */
+.sidebar-divider {
+    border-color: rgba(13, 202, 240, 0.2) !important;
+    margin: 1rem 0;
+}
+
+/* Sidebar toggle button */
+#sidebarToggle {
+    background: var(--login-primary) !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    color: var(--text-white) !important;
+    transition: all 0.3s ease;
+}
+
+#sidebarToggle:hover {
+    background: var(--cyan-hover) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(13, 202, 240, 0.3);
+}
+
+/* ========================================
+   DASHBOARD BACKGROUND - LOGIN PAGE INSPIRED
+   ======================================== */
+body {
+    background: linear-gradient(135deg, #f8fffe 0%, rgba(182, 239, 251, 0.1) 100%) !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#content-wrapper {
+    background: linear-gradient(135deg, #ffffff 0%, rgba(182, 239, 251, 0.05) 100%) !important;
+    min-height: 100vh;
+}
+
+.container-fluid {
+    background: transparent !important;
+}
+
+/* ========================================
+   CARDS & HIGHLIGHTS
+   ======================================== */
+.card {
+    background-color: var(--card-bg) !important;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Safe Browsing Cards (Blue) */
+.card.safe-browsing,
+.card-safe {
+    border-left: 4px solid var(--safe-blue);
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--safe-blue-light) 100%) !important;
+}
+
+.card.safe-browsing:hover,
+.card-safe:hover {
+    background: linear-gradient(135deg, var(--safe-blue-light) 0%, rgba(49, 130, 206, 0.1) 100%) !important;
+    box-shadow: 0 4px 12px rgba(49, 130, 206, 0.2) !important;
+}
+
+/* Connected Users & Allowed Activity Cards (Green) */
+.card.connected-users,
+.card.allowed-activity,
+.card-success {
+    border-left: 4px solid var(--connected-green);
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--connected-green-light) 100%) !important;
+}
+
+.card.connected-users:hover,
+.card.allowed-activity:hover,
+.card-success:hover {
+    background: linear-gradient(135deg, var(--connected-green-light) 0%, rgba(56, 161, 105, 0.1) 100%) !important;
+    box-shadow: 0 4px 12px rgba(56, 161, 105, 0.2) !important;
+}
+
+/* ========================================
+   WARNING & DANGER STATES
+   ======================================== */
+/* Orange for mild issues */
+.card-warning,
+.alert-warning,
+.badge-warning,
+.btn-warning {
+    background-color: var(--warning-orange) !important;
+    border-color: var(--warning-orange) !important;
+    color: var(--text-white) !important;
+}
+
+.card-warning {
+    border-left: 4px solid var(--warning-orange);
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--warning-orange-light) 100%) !important;
+    color: var(--text-primary) !important;
+}
+
+.card-warning:hover {
+    background: linear-gradient(135deg, var(--warning-orange-light) 0%, rgba(237, 137, 54, 0.1) 100%) !important;
+    box-shadow: 0 4px 12px rgba(237, 137, 54, 0.2) !important;
+}
+
+.table-warning {
+    background-color: rgba(237, 137, 54, 0.1) !important;
+}
+
+/* Red for serious issues */
+.card-danger,
+.alert-danger,
+.badge-danger,
+.btn-danger {
+    background-color: var(--danger-red) !important;
+    border-color: var(--danger-red) !important;
+    color: var(--text-white) !important;
+}
+
+.card-danger {
+    border-left: 4px solid var(--danger-red);
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--danger-red-light) 100%) !important;
+    color: var(--text-primary) !important;
+}
+
+.card-danger:hover {
+    background: linear-gradient(135deg, var(--danger-red-light) 0%, rgba(229, 62, 62, 0.1) 100%) !important;
+    box-shadow: 0 4px 12px rgba(229, 62, 62, 0.2) !important;
+}
+
+.activity-pulse {
+    border-left-color: var(--danger-red) !important;
+    background: linear-gradient(135deg, var(--danger-red-light) 0%, rgba(229, 62, 62, 0.1) 100%) !important;
+}
+
+/* ========================================
+   BUTTONS - LOGIN PAGE STYLE
+   ======================================== */
+.btn-primary {
+    background: linear-gradient(135deg, var(--login-primary), var(--login-secondary)) !important;
+    border: none !important;
+    color: var(--text-white) !important;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 12px 24px;
+    box-shadow: 0 4px 15px rgba(13, 202, 240, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--login-secondary), var(--login-primary)) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(13, 202, 240, 0.4);
+    color: var(--text-white) !important;
+}
+
+.btn-primary:active,
+.btn-primary:focus {
+    background: linear-gradient(135deg, var(--login-secondary), var(--cyan-dark)) !important;
+    box-shadow: 0 0 0 3px rgba(13, 202, 240, 0.2);
+    color: var(--text-white) !important;
+}
+
+.btn-info {
+    background: linear-gradient(135deg, var(--cyan-primary), var(--cyan-hover)) !important;
+    border: none !important;
+    color: var(--text-white) !important;
+    font-weight: 500;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
+}
+
+.btn-info:hover {
+    background: linear-gradient(135deg, var(--cyan-hover), var(--login-primary)) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(34, 211, 238, 0.4);
+    color: var(--text-white) !important;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--connected-green), #059669) !important;
+    border: none !important;
+    color: var(--text-white) !important;
+    font-weight: 500;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #059669, var(--connected-green)) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    color: var(--text-white) !important;
+}
+
+.btn-outline-primary {
+    border: 2px solid var(--login-primary) !important;
+    color: var(--login-primary) !important;
+    background: transparent !important;
+    font-weight: 500;
+    border-radius: 10px;
+}
+
+.btn-outline-primary:hover {
+    background: linear-gradient(135deg, var(--login-primary), var(--login-secondary)) !important;
+    border-color: var(--login-primary) !important;
+    color: var(--text-white) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(13, 202, 240, 0.3);
+}
+
+/* ========================================
+   ICONS & ACCENTS - LOGIN PAGE COLORS
+   ======================================== */
+.text-primary {
+    color: var(--login-primary) !important;
+}
+
+.text-info {
+    color: var(--cyan-primary) !important;
+}
+
+.text-success {
+    color: var(--connected-green) !important;
+}
+
+.text-warning {
+    color: var(--warning-orange) !important;
+}
+
+.text-danger {
+    color: var(--danger-red) !important;
+}
+
+/* Icon specific styling - Login page inspired */
+.fa-home,
+.fa-tachometer-alt {
+    color: var(--login-primary) !important;
+}
+
+.fa-user,
+.fa-users {
+    color: var(--cyan-primary) !important;
+}
+
+.fa-shield-alt,
+.fa-ban {
+    color: var(--safe-blue) !important;
+}
+
+.fa-check-circle,
+.fa-wifi {
+    color: var(--connected-green) !important;
+}
+
+.fa-exclamation-triangle {
+    color: var(--warning-orange) !important;
+}
+
+.fa-times-circle {
+    color: var(--danger-red) !important;
+}
+
+/* Special icons with gradient effects */
+.icon-gradient {
+    background: linear-gradient(135deg, var(--login-primary), var(--cyan-hover));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Connected status specific styling */
+.connected-status {
+    background: linear-gradient(135deg, var(--connected-green), #059669) !important;
+    color: var(--text-white) !important;
+    border-radius: 6px;
+    padding: 0.25rem 0.75rem;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.connected-icon {
+    color: var(--text-white) !important;
+}
+
+/* Override general success styling for connected elements */
+.badge-success.connected-status {
+    background-color: var(--connected-green) !important;
+}
+
+/* ========================================
+   TABLE STYLING
+   ======================================== */
+.table th {
+    background-color: var(--content-bg) !important;
+    color: var(--text-primary) !important;
+    border-top: none;
+    font-weight: 600;
+}
+
+.table tbody tr:hover {
+    background: linear-gradient(135deg, var(--teal-hover), rgba(49, 151, 149, 0.05)) !important;
+}
+
+.hover-highlight:hover {
+    background: linear-gradient(135deg, var(--teal-primary), var(--teal-hover)) !important;
+    color: var(--text-white) !important;
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}
+
+/* ========================================
+   BADGES & STATUS INDICATORS
+   ======================================== */
+.badge-primary {
+    background-color: var(--teal-primary) !important;
+}
+
+.badge-info {
+    background-color: var(--purple-primary) !important;
+}
+
+.badge-success {
+    background-color: var(--connected-green) !important;
+}
+
+/* Ensure connected status badges specifically use green */
+.badge.connected-status {
+    background-color: var(--connected-green) !important;
+    color: var(--text-white) !important;
+}
+
+.badge-warning {
+    background-color: var(--warning-orange) !important;
+}
+
+.badge-danger {
+    background-color: var(--danger-red) !important;
+}
+
+.status-indicator.online {
+    background-color: var(--teal-primary) !important;
+    box-shadow: 0 0 6px rgba(49, 151, 149, 0.5);
+}
+
+.status-indicator.offline {
+    background-color: var(--danger-red) !important;
+    box-shadow: 0 0 6px rgba(229, 62, 62, 0.5);
+}
+
+.status-indicator.warning {
+    background-color: var(--warning-orange) !important;
+    box-shadow: 0 0 6px rgba(237, 137, 54, 0.5);
+}
+
+/* ========================================
+   ACTIVITY MONITORING
+   ======================================== */
+.activity-monitor {
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--content-bg) 100%);
+    border-left: 3px solid var(--teal-primary);
+    transition: all 0.3s ease;
+}
+
+.activity-monitor:hover {
+    border-left-color: var(--teal-primary);
+    box-shadow: 0 4px 12px rgba(49, 151, 149, 0.2);
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+@media (max-width: 768px) {
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* ========================================
+   ANIMATIONS & TRANSITIONS
+   ======================================== */
+@keyframes activityPulse {
+    0% { 
+        opacity: 1; 
+        box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7);
+    }
+    70% { 
+        opacity: 0.8; 
+        box-shadow: 0 0 0 8px rgba(229, 62, 62, 0);
+    }
+    100% { 
+        opacity: 1; 
+        box-shadow: 0 0 0 0 rgba(229, 62, 62, 0);
+    }
+}
+
+/* Smooth transitions for all interactive elements */
+.card,
+.btn,
+.nav-item,
+.badge,
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+/* ========================================
+   SCROLLBAR STYLING
+   ======================================== */
+#accordionSidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+#accordionSidebar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+#accordionSidebar::-webkit-scrollbar-thumb {
+    background: #0F766E;
+    border-radius: 3px;
+}
+
+#accordionSidebar::-webkit-scrollbar-thumb:hover {
+    background: #14827a;
+}
+
+/* ========================================
+   SPECIAL CLASSES FOR DASHBOARD CARDS
+   ======================================== */
+.dashboard-card-safe {
+    border-left: 4px solid var(--safe-blue) !important;
+    background: linear-gradient(135deg, var(--card-bg), var(--safe-blue-light)) !important;
+}
+
+.dashboard-card-connected {
+    border-left: 4px solid var(--connected-green) !important;
+    background: linear-gradient(135deg, var(--card-bg), var(--connected-green-light)) !important;
+}
+
+.dashboard-card-warning {
+    border-left: 4px solid var(--warning-orange) !important;
+    background: linear-gradient(135deg, var(--card-bg), var(--warning-orange-light)) !important;
+}
+
+.dashboard-card-danger {
+    border-left: 4px solid var(--danger-red) !important;
+    background: linear-gradient(135deg, var(--card-bg), var(--danger-red-light)) !important;
+}
+
+/* ========================================
+   CONNECTED STATUS SPECIFIC STYLING
+   ======================================== */
+/* Override badge-success to use green specifically for connected status */
+.badge-success {
+    background-color: var(--connected-green) !important;
+    color: var(--text-white) !important;
+}
+
+/* Connected status text should be green */
+.text-success {
+    color: var(--connected-green) !important;
+}
+
+/* WiFi icons should use green for connected states */
+.fa-wifi {
+    color: var(--connected-green) !important;
+}
+
+/* Status indicators for online/connected devices */
+.status-indicator.connected,
+.status-indicator.online {
+    background-color: var(--connected-green) !important;
+    box-shadow: 0 0 6px rgba(56, 161, 105, 0.5);
+}

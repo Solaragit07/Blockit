@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard Diagnostic</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h2>Dashboard Activity System Diagnostic</h2>
+    
+    <div class="section">
+        <h3>1. API Test</h3>
+        <button onclick="testAPI()">Test get_user_activities.php</button>
+        <div id="apiResult"></div>
+    </div>
+    
+    <div class="section">
+        <h3>2. Dashboard Elements Test</h3>
+        <button onclick="testDashboardElements()">Check Dashboard Elements</button>
+        <div id="elementsResult"></div>
+    </div>
+    
+    <div class="section">
+        <h3>3. MAC Address Comparison</h3>
+        <button onclick="compareMacAddresses()">Compare MAC Addresses</button>
+        <div id="macResult"></div>
+    </div>
+
+    <script>
+        function testAPI() {
+            $('#apiResult').html('<p class="info">Testing API...</p>');
+            
+            $.ajax({
+                url: 'get_user_activities.php',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    let html = '<p class="success">✅ API Working</p>';
+                    html += '<pre>' + JSON.stringify(response, null, 2) + '</pre>';
+                    
+                    if (response.activities) {
+                        html += '<h4>MAC Addresses in API Response:</h4><ul>';
+                        Object.keys(response.activities).forEach(function(mac) {
+                            html += '<li><code>' + mac + '</code></li>';
+                        });
+                        html += '</ul>';
+                    }
+                    
+                    $('#apiResult').html(html);
+                },
+                error: function(xhr, status, error) {
+                    $('#apiResult').html('<p class="error">❌ API Error: ' + error + '</p><pre>' + xhr.responseText + '</pre>');
+                }
+            });
+        }
+        
+        function testDashboardElements() {
+            // Load dashboard content in iframe to check elements
+            let iframe = $('<iframe src="index.php" style="width:100%; height:400px; border:1px solid #ccc;"></iframe>');
+            
+            iframe.on('load', function() {
+                try {
+                    let iframeDoc = iframe[0].contentDocument || iframe[0].contentWindow.document;
+                    let activityElements = $(iframeDoc).find('[id^="activity-"]');
+                    
+                    let html = '<p class="success">✅ Found ' + activityElements.length + ' activity elements</p>';
+                    html += '<h4>Activity Elements in Dashboard:</h4><ul>';
+                    
+                    activityElements.each(function() {
+                        let elementId = this.id;
+                        let mac = elementId.replace('activity-', '');
+                        html += '<li>Element ID: <code>' + elementId + '</code> → MAC: <code>' + mac + '</code></li>';
+                    });
+                    
+                    html += '</ul>';
+                    $('#elementsResult').html(html + iframe[0].outerHTML);
+                } catch (e) {
+                    $('#elementsResult').html('<p class="error">❌ Could not access iframe content: ' + e.message + '</p>' + iframe[0].outerHTML);
+                }
+            });
+            
+            $('#elementsResult').html('<p class="info">Loading dashboard...</p>').append(iframe);
+        }
+        
+        function compareMacAddresses() {
+            $('#macResult').html('<p class="info">Comparing MAC addresses...</p>');
+            
+            // Get API data
+            $.ajax({
+                url: 'get_user_activities.php',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    let apiMacs = response.activities ? Object.keys(response.activities) : [];
+                    
+                    // Try to get dashboard MAC addresses by making a separate request
+                    $.ajax({
+                        url: 'index.php',
+                        type: 'GET',
+                        success: function(dashboardHtml) {
+                            // Extract MAC addresses from the HTML
+                            let dashboardMacs = [];
+                            let macRegex = /activity-([A-F0-9:]{17})/gi;
+                            let regexMatches;
+                            
+                            while ((regexMatches = macRegex.exec(dashboardHtml)) !== null) {
+                                dashboardMacs.push(regexMatches[1]);
+                            }
+                            
+                            let html = '<h4>Comparison Results:</h4>';
+                            html += '<p><strong>API MAC Addresses (' + apiMacs.length + '):</strong></p><ul>';
+                            apiMacs.forEach(function(mac) {
+                                html += '<li><code>' + mac + '</code></li>';
+                            });
+                            html += '</ul>';
+                            
+                            html += '<p><strong>Dashboard MAC Addresses (' + dashboardMacs.length + '):</strong></p><ul>';
+                            dashboardMacs.forEach(function(mac) {
+                                html += '<li><code>' + mac + '</code></li>';
+                            });
+                            html += '</ul>';
+                            
+                            // Check for matches
+                            let matchingMacs = apiMacs.filter(mac => dashboardMacs.includes(mac));
+                            html += '<p><strong>Matches (' + matchingMacs.length + '):</strong></p><ul>';
+                            matchingMacs.forEach(function(mac) {
+                                html += '<li class="success"><code>' + mac + '</code> ✅</li>';
+                            });
+                            html += '</ul>';
+                            
+                            if (matchingMacs.length === 0) {
+                                html += '<p class="error">❌ No matching MAC addresses found! This is likely the problem.</p>';
+                            } else {
+                                html += '<p class="success">✅ Found ' + matchingMacs.length + ' matching MAC addresses.</p>';
+                            }
+                            
+                            $('#macResult').html(html);
+                        },
+                        error: function() {
+                            $('#macResult').html('<p class="error">❌ Could not load dashboard HTML</p>');
+                        }
+                    });
+                },
+                error: function(xhr, status, error) {
+                    $('#macResult').html('<p class="error">❌ API Error: ' + error + '</p>');
+                }
+            });
+        }
+        
+        // Run tests automatically
+        $(document).ready(function() {
+            testAPI();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard Function Test</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-button { margin: 5px; padding: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .test-button:hover { background: #0056b3; }
+        .result { margin: 10px 0; padding: 10px; background: #f8f9fa; border-left: 4px solid #007bff; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard Action Button Test</h1>
+    <p>Test the dashboard action button functions:</p>
+    
+    <div>
+        <button class="test-button" onclick="testCreateProfile()">Test Create Profile</button>
+        <button class="test-button" onclick="testBlockDevice()">Test Block Device</button>
+        <button class="test-button" onclick="testViewBlocklist()">Test View Blocklist</button>
+        <button class="test-button" onclick="testLimitBandwidth()">Test Limit Bandwidth</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        // Include the dashboard functions
+        function createProfile(macAddress, deviceName, ipAddress) {
+            Swal.fire({
+                title: 'Create Device Profile',
+                html: `
+                    <p>Create a profile for this unknown device:</p>
+                    <p><strong>Device:</strong> ${deviceName}</p>
+                    <p><strong>MAC:</strong> ${macAddress}</p>
+                    <p><strong>IP:</strong> ${ipAddress}</p>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Create Profile',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '../profile/?mac=' + encodeURIComponent(macAddress) + 
+                                         '&name=' + encodeURIComponent(deviceName) + 
+                                         '&ip=' + encodeURIComponent(ipAddress);
+                }
+            });
+        }
+
+        function blockDevice(macAddress) {
+            Swal.fire({
+                title: 'Block Device',
+                text: 'Are you sure you want to block this unknown device?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, block it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire('Test Mode', 'This would block the device: ' + macAddress, 'info');
+                }
+            });
+        }
+
+        function viewBlocklist(deviceId) {
+            Swal.fire({
+                title: 'View Blocklist',
+                text: 'Opening blocklist for this device...',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'View Blocklist',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '../blocklist/?device_id=' + deviceId;
+                }
+            });
+        }
+
+        function limitBandwidth(deviceId) {
+            Swal.fire({
+                title: 'Set Bandwidth Limit',
+                input: 'select',
+                inputOptions: {
+                    '1M': '1 Mbps',
+                    '2M': '2 Mbps',
+                    '5M': '5 Mbps',
+                    '10M': '10 Mbps',
+                    '20M': '20 Mbps',
+                    'unlimited': 'Unlimited'
+                },
+                inputPlaceholder: 'Select bandwidth limit',
+                showCancelButton: true,
+                confirmButtonText: 'Apply',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    Swal.fire('Test Mode', 'This would set bandwidth to ' + result.value + ' for device ' + deviceId, 'info');
+                }
+            });
+        }
+
+        // Test functions
+        function testCreateProfile() {
+            createProfile('AA:BB:CC:DD:EE:FF', 'Test Device', '192.168.1.100');
+        }
+
+        function testBlockDevice() {
+            blockDevice('AA:BB:CC:DD:EE:FF');
+        }
+
+        function testViewBlocklist() {
+            viewBlocklist(123);
+        }
+
+        function testLimitBandwidth() {
+            limitBandwidth(123);
+        }
+
+        // Log function availability
+        document.addEventListener('DOMContentLoaded', function() {
+            const functions = ['createProfile', 'blockDevice', 'viewBlocklist', 'limitBandwidth'];
+            const results = document.getElementById('results');
+            
+            functions.forEach(func => {
+                const isAvailable = typeof window[func] === 'function';
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'result';
+                resultDiv.innerHTML = `<strong>${func}:</strong> ${isAvailable ? '✅ Available' : '❌ Not Found'}`;
+                results.appendChild(resultDiv);
+            });
+        });
+    </script>
+</body>
+</html>

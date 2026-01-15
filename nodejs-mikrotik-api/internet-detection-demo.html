@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Internet Device Detection - How It Works</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .success { color: #28a745; font-weight: bold; }
+        .info { color: #17a2b8; }
+        .highlight { background: #fff3cd; padding: 10px; border-radius: 4px; margin: 10px 0; }
+        .code { background: #f8f9fa; padding: 15px; border-radius: 4px; font-family: monospace; margin: 10px 0; }
+        .step { background: #e9ecef; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid #007bff; }
+        .device-demo { border: 1px solid #28a745; padding: 15px; margin: 10px 0; border-radius: 8px; background: #f8fff9; }
+        .offline-demo { border: 1px solid #dc3545; padding: 15px; margin: 10px 0; border-radius: 8px; background: #fff5f5; opacity: 0.6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 Real-Time Internet Device Detection</h1>
+        
+        <div class="card">
+            <h2>📡 How the System Works</h2>
+            <p class="info">This system shows ONLY devices that are actively connected to the internet through your MikroTik router in real-time.</p>
+            
+            <div class="step">
+                <h3>Step 1: 🔍 Traffic Analysis</h3>
+                <p>Uses MikroTik's <strong>torch</strong> tool to capture 5 seconds of real network traffic</p>
+                <div class="code">GET /tool/torch interface=bridge-lan duration=5</div>
+            </div>
+            
+            <div class="step">
+                <h3>Step 2: 🌐 Internet Traffic Detection</h3>
+                <p>Filters traffic to identify devices communicating with internet (non-local IPs)</p>
+                <div class="code">
+Local IPs: 192.168.x.x, 10.x.x.x, 172.16-31.x.x<br>
+Internet IPs: Everything else (Google, Facebook, etc.)
+                </div>
+            </div>
+            
+            <div class="step">
+                <h3>Step 3: ✅ Device Validation</h3>
+                <p>Cross-references with ARP table to ensure devices are reachable</p>
+                <div class="code">ARP Status: complete=true AND recent internet traffic > 0</div>
+            </div>
+            
+            <div class="step">
+                <h3>Step 4: 📊 Real-Time Updates</h3>
+                <p>Dashboard refreshes every 3 seconds to show current internet activity</p>
+                <div class="code">Auto-refresh: setInterval(loadInternetDevices, 3000)</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>🎯 What You'll See vs What You Won't</h2>
+            
+            <h3 class="success">✅ WILL SHOW (Internet Active Devices):</h3>
+            <div class="device-demo">
+                <strong>📱 Phone browsing Facebook</strong> 🌐 INTERNET ACTIVE<br>
+                <small>IP: 192.168.10.100 | MAC: AA:BB:CC:DD:EE:FF</small><br>
+                <small>RX: 2.5 MB | TX: 456 KB | Total: 2.95 MB</small><br>
+                <small>Connections: 15 | Interface: bridge-lan</small><br>
+                <small>Last activity: 14:32:45</small>
+            </div>
+            
+            <div class="device-demo">
+                <strong>💻 Laptop watching YouTube</strong> 🌐 INTERNET ACTIVE<br>
+                <small>IP: 192.168.10.101 | MAC: 11:22:33:44:55:66</small><br>
+                <small>RX: 15.2 MB | TX: 1.2 MB | Total: 16.4 MB</small><br>
+                <small>Connections: 8 | Interface: bridge-lan</small><br>
+                <small>Last activity: 14:32:47</small>
+            </div>
+            
+            <h3 style="color: #dc3545;">❌ WILL NOT SHOW (Offline/Local Only):</h3>
+            <div class="offline-demo">
+                <strong>🖨️ Printer (no internet)</strong> ❌ LOCAL ONLY<br>
+                <small>Only communicates locally - filtered out</small>
+            </div>
+            
+            <div class="offline-demo">
+                <strong>📱 Phone (WiFi off)</strong> ❌ DISCONNECTED<br>
+                <small>Not in ARP table - filtered out</small>
+            </div>
+            
+            <div class="offline-demo">
+                <strong>💻 Laptop (sleeping)</strong> ❌ NO TRAFFIC<br>
+                <small>No recent internet activity - filtered out</small>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>🚀 API Endpoints for Real-Time Detection</h2>
+            
+            <div class="highlight">
+                <strong>🌐 GET /devices/internet</strong> - Real-time internet-connected devices<br>
+                <small>Returns devices with active internet connectivity only</small>
+            </div>
+            
+            <div class="highlight">
+                <strong>📋 GET /devices/internet/simple</strong> - Simple format<br>
+                <small>Returns: [{"ip": "192.168.10.100", "mac": "AA:BB:CC", "hostname": "Phone", "rx": 1024, "tx": 2048}]</small>
+            </div>
+            
+            <div class="code">
+// Example Response from /devices/internet
+{
+  "success": true,
+  "count": 2,
+  "devices": [
+    {
+      "ip": "192.168.10.100",
+      "mac": "AA:BB:CC:DD:EE:FF", 
+      "hostname": "Phone",
+      "rx": 2621440,
+      "tx": 466944,
+      "connections": 15,
+      "isInternetActive": true,
+      "lastActivity": "2025-08-19T14:32:45.123Z"
+    }
+  ],
+  "timestamp": "2025-08-19T14:32:48.000Z"
+}
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>⚡ To Start Using:</h2>
+            <ol>
+                <li><strong>Install Node.js</strong> from <a href="https://nodejs.org" target="_blank">nodejs.org</a></li>
+                <li><strong>Run setup script:</strong> <code>.\setup.ps1</code></li>
+                <li><strong>Install dependencies:</strong> <code>npm install</code></li>
+                <li><strong>Start server:</strong> <code>npm start</code></li>
+                <li><strong>Open dashboard:</strong> <a href="test-dashboard.html" target="_blank">test-dashboard.html</a></li>
+                <li><strong>Click:</strong> "🌐 Internet Connected" button for real-time view</li>
+            </ol>
+            
+            <div class="success">
+                🎯 Result: You'll see ONLY devices actively using the internet through your MikroTik router!
+            </div>
+        </div>
+    </div>
+</body>
+</html>

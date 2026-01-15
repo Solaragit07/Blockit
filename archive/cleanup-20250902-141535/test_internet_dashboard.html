@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Internet Priority Dashboard Test</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { color: green; }
+        .warning { color: orange; }
+        .error { color: red; }
+        .device-display { border: 1px solid #ccc; padding: 10px; margin: 10px 0; background: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>🌐 Internet Priority Dashboard Test</h1>
+    
+    <div class="test-section">
+        <h3>Current Dashboard Status</h3>
+        <p>This test will show what devices are currently being displayed by the updated dashboard.</p>
+        
+        <div id="device-container" class="device-display">
+            <em>Loading devices...</em>
+        </div>
+        
+        <div id="analysis-results">
+            <em>Analyzing device priority...</em>
+        </div>
+    </div>
+    
+    <script>
+        // Function to load and analyze devices
+        function loadDevices() {
+            fetch('main/dashboard/get_real_time_devices.php')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('device-container');
+                    const analysis = document.getElementById('analysis-results');
+                    
+                    if (data.success) {
+                        container.innerHTML = data.html;
+                        
+                        // Analyze the content
+                        const html = data.html;
+                        const internetCount = (html.match(/Internet Active/g) || []).length;
+                        const localCount = (html.match(/Local Network Only/g) || []).length;
+                        const totalDevices = data.count;
+                        
+                        let analysisHTML = `
+                            <h4>📊 Analysis Results:</h4>
+                            <ul>
+                                <li><strong>Total devices shown:</strong> ${totalDevices}</li>
+                                <li><strong>🌐 Internet-connected devices:</strong> <span class="success">${internetCount}</span></li>
+                                <li><strong>🏠 Local-only devices:</strong> <span class="warning">${localCount}</span></li>
+                            </ul>
+                        `;
+                        
+                        if (internetCount > 0) {
+                            analysisHTML += '<p class="success">✅ <strong>SUCCESS:</strong> Dashboard is prioritizing internet-connected devices!</p>';
+                        } else if (localCount > 0) {
+                            analysisHTML += '<p class="warning">⚠️ <strong>FALLBACK:</strong> No internet activity detected, showing local devices.</p>';
+                        } else {
+                            analysisHTML += '<p class="error">❌ <strong>NO DEVICES:</strong> No devices meeting the criteria.</p>';
+                        }
+                        
+                        analysis.innerHTML = analysisHTML;
+                        
+                    } else {
+                        container.innerHTML = `<span class="error">Error: ${data.message || 'Unknown error'}</span>`;
+                        analysis.innerHTML = '<p class="error">❌ Failed to load device data</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('device-container').innerHTML = `<span class="error">Error loading devices: ${error.message}</span>`;
+                    document.getElementById('analysis-results').innerHTML = '<p class="error">❌ Network error occurred</p>';
+                });
+        }
+        
+        // Load devices when page loads
+        document.addEventListener('DOMContentLoaded', loadDevices);
+        
+        // Refresh every 10 seconds
+        setInterval(loadDevices, 10000);
+    </script>
+    
+    <div class="test-section">
+        <h3>Expected Behavior</h3>
+        <ul>
+            <li>🎯 <strong>Primary Goal:</strong> Show devices with internet connectivity first</li>
+            <li>🔍 <strong>Detection Method:</strong> 10-second torch monitoring + fallback methods</li>
+            <li>📊 <strong>Priority System:</strong> Internet devices → Local devices (if no internet found)</li>
+            <li>🏷️ <strong>Visual Indicators:</strong> "Internet Active" badges and priority labels</li>
+            <li>⚡ <strong>Ultra-Strict Filtering:</strong> Only DHCP 'bound' + ARP verified devices</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h3>🔄 Manual Refresh</h3>
+        <button onclick="loadDevices()" style="padding: 10px 20px; font-size: 16px;">Refresh Device List</button>
+        <p><em>Page auto-refreshes every 10 seconds</em></p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,30 @@
+[
+    {
+        "name": "Marjorie",
+        "group": "under18",
+        "macs": [
+            "F4:4E:E3:97:01:58"
+        ]
+    },
+    {
+        "name": "Jean",
+        "group": "over18",
+        "macs": [
+            "AA:F2:5C:C0:9E:21"
+        ]
+    },
+    {
+        "name": "Barron",
+        "group": "over18",
+        "macs": [
+            "AA:D3:75:B7:31:B0"
+        ]
+    },
+    {
+        "name": "Third",
+        "group": "over18",
+        "macs": [
+            "5E:32:62:C8:51:5A"
+        ]
+    }
+]

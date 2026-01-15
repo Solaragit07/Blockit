@@ -1,0 +1,346 @@
+[2025-10-25 18:20:05] Set daily limit 1 min for aa:f2:5c:c0:9e:21
+[2025-10-25 18:20:06] Pre-alert for aa:f2:5c:c0:9e:21 (<=5 min left)
+[2025-10-25 18:21:02] Device aa:f2:5c:c0:9e:21 blocked via tickUsage
+[2025-10-25 18:21:02] current_user_email(): using fallback_email=admin@blockit.site
+[2025-10-25 18:21:02] Block email FAILED to admin@blockit.site for aa:f2:5c:c0:9e:21
+[2025-10-25 18:22:15] Router identity: MikroTik
+[2025-10-25 18:22:16] --- DEBUG: firewall filter snapshot start ---
+[2025-10-25 18:22:16] id=*BF chain=forward act=drop mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-25 18:22:16] --- DEBUG: firewall filter snapshot end ---
+[2025-10-25 18:22:16] Matched TIME-LIMIT candidate: id=*BF mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-25 18:22:16] Removed by .id successfully: id=*BF
+[2025-10-25 18:22:16] No TIME-LIMIT rules remain after removal attempt.
+[2025-10-25 18:22:16] Removed 1 TIME-LIMIT firewall rule(s) for aa:f2:5c:c0:9e:21
+[2025-10-25 18:22:17] Device aa:f2:5c:c0:9e:21 unblocked (timer cleared)
+[2025-10-25 18:28:58] Set daily limit 1 min for aa:f2:5c:c0:9e:21
+[2025-10-25 18:28:59] Pre-alert for aa:f2:5c:c0:9e:21 (<=5 min left)
+[2025-10-25 18:29:02] Device aa:f2:5c:c0:9e:21 blocked via tickUsage
+[2025-10-25 18:29:02] current_user_email(): using fallback_email=admin@blockit.site
+[2025-10-25 18:29:02] Block email FAILED to admin@blockit.site for aa:f2:5c:c0:9e:21
+[2025-10-25 18:35:05] Router identity: MikroTik
+[2025-10-25 18:35:05] --- DEBUG: firewall filter snapshot start ---
+[2025-10-25 18:35:05] id=*C0 chain=forward act=drop mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-25 18:35:05] --- DEBUG: firewall filter snapshot end ---
+[2025-10-25 18:35:05] Matched TIME-LIMIT candidate: id=*C0 mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-25 18:35:05] Removed by .id successfully: id=*C0
+[2025-10-25 18:35:06] No TIME-LIMIT rules remain after removal attempt.
+[2025-10-25 18:35:06] Removed 1 TIME-LIMIT firewall rule(s) for aa:f2:5c:c0:9e:21
+[2025-10-25 18:35:06] Device aa:f2:5c:c0:9e:21 unblocked (timer cleared)
+[2025-10-25 18:35:11] Set daily limit 1 min for aa:f2:5c:c0:9e:21
+[2025-10-25 18:35:12] Pre-alert for aa:f2:5c:c0:9e:21 (<=5 min left)
+[2025-10-25 18:36:02] Device aa:f2:5c:c0:9e:21 blocked via tickUsage
+[2025-10-25 18:36:02] current_user_email(): using fallback_email=admin@blockit.site
+[2025-10-25 18:36:02] msmtp proc_open path failed (code=74, wrote=0) – using fallback
+[2025-10-25 18:36:04] Block email queued to admin@blockit.site for aa:f2:5c:c0:9e:21
+[2025-10-25 18:43:54] Router identity: MikroTik
+[2025-10-25 18:43:55] --- DEBUG: firewall filter snapshot start ---
+[2025-10-25 18:43:55] id=*C1 chain=forward act=drop mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-25 18:43:55] --- DEBUG: firewall filter snapshot end ---
+[2025-10-25 18:43:55] Matched TIME-LIMIT candidate: id=*C1 mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-25 18:43:55] Removed by .id successfully: id=*C1
+[2025-10-25 18:43:55] No TIME-LIMIT rules remain after removal attempt.
+[2025-10-25 18:43:55] Removed 1 TIME-LIMIT firewall rule(s) for aa:f2:5c:c0:9e:21
+[2025-10-25 18:43:56] Device aa:f2:5c:c0:9e:21 unblocked (timer cleared)
+[2025-10-25 18:44:03] Set daily limit 1 min for aa:f2:5c:c0:9e:21
+[2025-10-25 18:44:04] Pre-alert for aa:f2:5c:c0:9e:21 (<=5 min left)
+[2025-10-25 18:45:02] Device aa:f2:5c:c0:9e:21 blocked via tickUsage
+[2025-10-25 18:45:02] current_user_email(): using fallback_email=admin@blockit.site
+[2025-10-25 18:45:02] msmtp proc_open path failed (code=74, wrote=0) – using fallback
+[2025-10-25 18:45:04] Block email queued to admin@blockit.site for aa:f2:5c:c0:9e:21
+[2025-10-26 02:19:34] Router identity: MikroTik
+[2025-10-26 02:19:34] --- DEBUG: firewall filter snapshot start ---
+[2025-10-26 02:19:34] id=*C2 chain=forward act=drop mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 02:19:34] --- DEBUG: firewall filter snapshot end ---
+[2025-10-26 02:19:34] Matched TIME-LIMIT candidate: id=*C2 mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 02:19:35] Removed by .id successfully: id=*C2
+[2025-10-26 02:19:35] No TIME-LIMIT rules remain after removal attempt.
+[2025-10-26 02:19:35] Removed 1 TIME-LIMIT firewall rule(s) for aa:f2:5c:c0:9e:21
+[2025-10-26 02:19:35] Device aa:f2:5c:c0:9e:21 unblocked (timer cleared)
+[2025-10-26 08:29:05] Set daily limit 1 min for aa:f2:5c:c0:9e:21
+[2025-10-26 08:29:10] Pre-alert for aa:f2:5c:c0:9e:21 (<=5 min left)
+[2025-10-26 08:30:03] Device aa:f2:5c:c0:9e:21 blocked via tickUsage
+[2025-10-26 08:30:03] current_user_email(): using fallback_email=admin@blockit.site
+[2025-10-26 08:30:04] Block email queued to admin@blockit.site for aa:f2:5c:c0:9e:21
+[2025-10-26 08:33:47] Router identity: MikroTik
+[2025-10-26 08:33:48] --- DEBUG: firewall filter snapshot start ---
+[2025-10-26 08:33:48] id=*C3 chain=forward act=drop mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 08:33:48] --- DEBUG: firewall filter snapshot end ---
+[2025-10-26 08:33:48] Matched TIME-LIMIT candidate: id=*C3 mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 08:33:48] Removed by .id successfully: id=*C3
+[2025-10-26 08:33:48] No TIME-LIMIT rules remain after removal attempt.
+[2025-10-26 08:33:48] Removed 1 TIME-LIMIT firewall rule(s) for aa:f2:5c:c0:9e:21
+[2025-10-26 08:33:49] Device aa:f2:5c:c0:9e:21 unblocked (timer cleared)
+[2025-10-26 09:25:19] Set daily limit 1 min for aa:f2:5c:c0:9e:21
+[2025-10-26 09:25:22] Pre-alert for aa:f2:5c:c0:9e:21 (<=5 min left)
+[2025-10-26 09:26:03] Device aa:f2:5c:c0:9e:21 blocked via tickUsage
+[2025-10-26 09:26:03] current_user_email(): using fallback_email=admin@blockit.site
+[2025-10-26 09:26:04] Block email queued to admin@blockit.site for aa:f2:5c:c0:9e:21
+[2025-10-26 10:04:22] Router identity: MikroTik
+[2025-10-26 10:04:22] --- DEBUG: firewall filter snapshot start ---
+[2025-10-26 10:04:22] id=*BF chain=forward act=drop mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 10:04:22] --- DEBUG: firewall filter snapshot end ---
+[2025-10-26 10:04:23] Matched TIME-LIMIT candidate: id=*BF mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 10:04:23] Removed by .id successfully: id=*BF
+[2025-10-26 10:04:23] No TIME-LIMIT rules remain after removal attempt.
+[2025-10-26 10:04:23] Removed 1 TIME-LIMIT firewall rule(s) for aa:f2:5c:c0:9e:21
+[2025-10-26 10:04:23] Device aa:f2:5c:c0:9e:21 unblocked (timer cleared)
+[2025-10-26 10:04:27] Set daily limit 1 min for aa:f2:5c:c0:9e:21
+[2025-10-26 10:04:29] Pre-alert for aa:f2:5c:c0:9e:21 (<=5 min left)
+[2025-10-26 10:05:02] Device aa:f2:5c:c0:9e:21 blocked via tickUsage
+[2025-10-26 10:05:02] current_user_email(): using fallback_email=admin@blockit.site
+[2025-10-26 10:05:03] Block email queued to admin@blockit.site for aa:f2:5c:c0:9e:21
+[2025-10-26 12:19:19] Router identity: MikroTik
+[2025-10-26 12:19:20] --- DEBUG: firewall filter snapshot start ---
+[2025-10-26 12:19:20] id=*C0 chain=forward act=drop mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 12:19:20] --- DEBUG: firewall filter snapshot end ---
+[2025-10-26 12:19:20] Matched TIME-LIMIT candidate: id=*C0 mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 12:19:20] Removed by .id successfully: id=*C0
+[2025-10-26 12:19:21] Router identity: MikroTik
+[2025-10-26 12:19:21] No TIME-LIMIT rules remain after removal attempt.
+[2025-10-26 12:19:21] Removed 1 TIME-LIMIT firewall rule(s) for aa:f2:5c:c0:9e:21
+[2025-10-26 12:19:21] --- DEBUG: firewall filter snapshot start ---
+[2025-10-26 12:19:21] --- DEBUG: firewall filter snapshot end ---
+[2025-10-26 12:19:21] No TIME-LIMIT candidates found for aa:f2:5c:c0:9e:21 (by comment or mac)
+[2025-10-26 12:19:21] Removed 0 TIME-LIMIT firewall rule(s) for aa:f2:5c:c0:9e:21
+[2025-10-26 12:19:21] Device aa:f2:5c:c0:9e:21 unblocked (timer cleared)
+[2025-10-26 12:19:21] Device aa:f2:5c:c0:9e:21 unblocked (timer cleared)
+[2025-10-26 12:48:21] current_user_email(): session email used -> zxcdlareg@gmail.com
+[2025-10-26 12:48:25] Set daily limit 1 min for aa:f2:5c:c0:9e:21
+[2025-10-26 12:48:31] Pre-alert for aa:f2:5c:c0:9e:21 (<=5 min left)
+[2025-10-26 12:49:02] Device aa:f2:5c:c0:9e:21 blocked via tickUsage
+[2025-10-26 12:49:02] current_user_email(): using fallback_email=admin@blockit.site
+[2025-10-26 12:49:04] Block email queued to admin@blockit.site for 
+[2025-10-26 12:49:16] Router identity: MikroTik
+[2025-10-26 12:49:16] --- DEBUG: firewall filter snapshot start ---
+[2025-10-26 12:49:16] id=*C1 chain=forward act=drop mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 12:49:16] --- DEBUG: firewall filter snapshot end ---
+[2025-10-26 12:49:16] Matched TIME-LIMIT candidate: id=*C1 mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 12:49:17] Removed by .id successfully: id=*C1
+[2025-10-26 12:49:17] No TIME-LIMIT rules remain after removal attempt.
+[2025-10-26 12:49:17] Removed 1 TIME-LIMIT firewall rule(s) for aa:f2:5c:c0:9e:21
+[2025-10-26 12:49:17] Device aa:f2:5c:c0:9e:21 unblocked (timer cleared)
+[2025-10-26 12:49:25] Set daily limit 1 min for aa:f2:5c:c0:9e:21
+[2025-10-26 12:49:26] Set daily limit 1 min for aa:f2:5c:c0:9e:21
+[2025-10-26 12:49:31] Pre-alert for aa:f2:5c:c0:9e:21 (<=5 min left)
+[2025-10-26 12:50:02] Device aa:f2:5c:c0:9e:21 blocked via tickUsage
+[2025-10-26 12:50:02] current_user_email(): using fallback_email=admin@blockit.site
+[2025-10-26 12:50:04] Block email queued to admin@blockit.site for 
+[2025-10-26 12:50:40] Router identity: MikroTik
+[2025-10-26 12:50:41] --- DEBUG: firewall filter snapshot start ---
+[2025-10-26 12:50:41] id=*C2 chain=forward act=drop mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 12:50:41] --- DEBUG: firewall filter snapshot end ---
+[2025-10-26 12:50:41] Matched TIME-LIMIT candidate: id=*C2 mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 12:50:41] Removed by .id successfully: id=*C2
+[2025-10-26 12:50:41] No TIME-LIMIT rules remain after removal attempt.
+[2025-10-26 12:50:41] Removed 1 TIME-LIMIT firewall rule(s) for aa:f2:5c:c0:9e:21
+[2025-10-26 12:50:42] Device aa:f2:5c:c0:9e:21 unblocked (timer cleared)
+[2025-10-26 12:50:44] current_user_email(): session email used -> zxcdlareg@gmail.com
+[2025-10-26 12:50:51] Set daily limit 1 min for aa:f2:5c:c0:9e:21
+[2025-10-26 12:50:56] Pre-alert for aa:f2:5c:c0:9e:21 (<=5 min left)
+[2025-10-26 12:51:02] Device aa:f2:5c:c0:9e:21 blocked via tickUsage
+[2025-10-26 12:51:02] current_user_email(): using fallback_email=admin@blockit.site
+[2025-10-26 12:51:04] Block email queued to admin@blockit.site for 
+[2025-10-26 12:53:20] Router identity: MikroTik
+[2025-10-26 12:53:21] --- DEBUG: firewall filter snapshot start ---
+[2025-10-26 12:53:21] id=*C3 chain=forward act=drop mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 12:53:21] --- DEBUG: firewall filter snapshot end ---
+[2025-10-26 12:53:21] Matched TIME-LIMIT candidate: id=*C3 mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 12:53:21] Removed by .id successfully: id=*C3
+[2025-10-26 12:53:22] No TIME-LIMIT rules remain after removal attempt.
+[2025-10-26 12:53:22] Removed 1 TIME-LIMIT firewall rule(s) for aa:f2:5c:c0:9e:21
+[2025-10-26 12:53:22] Device aa:f2:5c:c0:9e:21 unblocked (timer cleared)
+[2025-10-26 12:56:15] Set daily limit 1 min for aa:f2:5c:c0:9e:21
+[2025-10-26 12:56:20] Pre-alert for aa:f2:5c:c0:9e:21 (<=5 min left)
+[2025-10-26 12:57:02] Device aa:f2:5c:c0:9e:21 blocked via tickUsage
+[2025-10-26 12:57:02] current_user_email(): using fallback_email=admin@blockit.site
+[2025-10-26 12:57:06] Block email queued to admin@blockit.site for 
+[2025-10-26 13:01:28] Router identity: MikroTik
+[2025-10-26 13:01:28] --- DEBUG: firewall filter snapshot start ---
+[2025-10-26 13:01:28] id=*C4 chain=forward act=drop mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 13:01:28] --- DEBUG: firewall filter snapshot end ---
+[2025-10-26 13:01:28] Matched TIME-LIMIT candidate: id=*C4 mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 13:01:28] Removed by .id successfully: id=*C4
+[2025-10-26 13:01:29] No TIME-LIMIT rules remain after removal attempt.
+[2025-10-26 13:01:29] Removed 1 TIME-LIMIT firewall rule(s) for aa:f2:5c:c0:9e:21
+[2025-10-26 13:01:29] Device aa:f2:5c:c0:9e:21 unblocked (timer cleared)
+[2025-10-26 13:01:56] Set daily limit 1 min for aa:f2:5c:c0:9e:21
+[2025-10-26 13:01:57] Pre-alert for aa:f2:5c:c0:9e:21 (<=5 min left)
+[2025-10-26 13:02:02] Device aa:f2:5c:c0:9e:21 blocked via tickUsage
+[2025-10-26 13:02:02] current_user_email(): using fallback -> admin@blockit.site
+[2025-10-26 13:02:03] Block email queued to admin@blockit.site for aa:f2:5c:c0:9e:21
+[2025-10-26 13:02:28] current_user_email(): using header X-User-Email -> zxcdlareg@gmail.com
+[2025-10-26 13:02:55] Router identity: MikroTik
+[2025-10-26 13:02:56] --- DEBUG: firewall filter snapshot start ---
+[2025-10-26 13:02:56] id=*C5 chain=forward act=drop mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 13:02:56] --- DEBUG: firewall filter snapshot end ---
+[2025-10-26 13:02:56] Matched TIME-LIMIT candidate: id=*C5 mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 13:02:56] Removed by .id successfully: id=*C5
+[2025-10-26 13:02:56] No TIME-LIMIT rules remain after removal attempt.
+[2025-10-26 13:02:56] Removed 1 TIME-LIMIT firewall rule(s) for aa:f2:5c:c0:9e:21
+[2025-10-26 13:02:57] Device aa:f2:5c:c0:9e:21 unblocked (timer cleared)
+[2025-10-26 13:04:27] current_user_email(): using session email -> test@test.com
+[2025-10-26 13:04:40] Set daily limit 1 min for aa:f2:5c:c0:9e:21
+[2025-10-26 13:04:45] Pre-alert for aa:f2:5c:c0:9e:21 (<=5 min left)
+[2025-10-26 13:05:03] Device aa:f2:5c:c0:9e:21 blocked via tickUsage
+[2025-10-26 13:05:03] current_user_email(): using fallback -> admin@blockit.site
+[2025-10-26 13:05:04] Block email queued to admin@blockit.site for aa:f2:5c:c0:9e:21
+[2025-10-26 13:07:59] Router identity: MikroTik
+[2025-10-26 13:07:59] --- DEBUG: firewall filter snapshot start ---
+[2025-10-26 13:07:59] id=*C6 chain=forward act=drop mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 13:07:59] --- DEBUG: firewall filter snapshot end ---
+[2025-10-26 13:08:00] Matched TIME-LIMIT candidate: id=*C6 mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 13:08:00] Removed by .id successfully: id=*C6
+[2025-10-26 13:08:00] No TIME-LIMIT rules remain after removal attempt.
+[2025-10-26 13:08:00] Removed 1 TIME-LIMIT firewall rule(s) for aa:f2:5c:c0:9e:21
+[2025-10-26 13:08:00] Device aa:f2:5c:c0:9e:21 unblocked (timer cleared)
+[2025-10-26 14:19:13] Auth: missing X-API-Key header
+[2025-10-26 14:19:13] Auth failed: headerKeyHash=none cfgKeyHash=6b4b6ec5
+[2025-10-26 14:19:14] Auth: missing X-API-Key header
+[2025-10-26 14:19:14] Auth failed: headerKeyHash=none cfgKeyHash=6b4b6ec5
+[2025-10-26 14:19:22] Auth: missing X-API-Key header
+[2025-10-26 14:19:22] Auth failed: headerKeyHash=none cfgKeyHash=6b4b6ec5
+[2025-10-26 14:19:32] Auth: missing X-API-Key header
+[2025-10-26 14:19:32] Auth failed: headerKeyHash=none cfgKeyHash=6b4b6ec5
+[2025-10-26 14:20:30] Auth: missing X-API-Key header
+[2025-10-26 14:20:30] Auth failed: headerKeyHash=none cfgKeyHash=6b4b6ec5
+[2025-10-26 14:33:39] Set daily limit 1 min for aa:f2:5c:c0:9e:21
+[2025-10-26 14:33:40] Pre-alert for aa:f2:5c:c0:9e:21 (<=5 min left)
+[2025-10-26 14:33:44] Device aa:f2:5c:c0:9e:21 blocked via tickUsage
+[2025-10-26 14:33:44] current_user_email(): using header X-User-Email -> zxcdlareg@gmail.com
+[2025-10-26 14:33:46] Block email queued to zxcdlareg@gmail.com for aa:f2:5c:c0:9e:21
+[2025-10-26 14:34:10] Router identity: MikroTik
+[2025-10-26 14:34:10] --- DEBUG: firewall filter snapshot start ---
+[2025-10-26 14:34:10] id=*BF chain=forward act=drop mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 14:34:10] --- DEBUG: firewall filter snapshot end ---
+[2025-10-26 14:34:10] Matched TIME-LIMIT candidate: id=*BF mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 14:34:10] Removed by .id successfully: id=*BF
+[2025-10-26 14:34:11] No TIME-LIMIT rules remain after removal attempt.
+[2025-10-26 14:34:11] Removed 1 TIME-LIMIT firewall rule(s) for aa:f2:5c:c0:9e:21
+[2025-10-26 14:34:11] Device aa:f2:5c:c0:9e:21 unblocked (timer cleared)
+[2025-10-26 14:37:55] Set daily limit 1 min for aa:f2:5c:c0:9e:21
+[2025-10-26 14:37:57] Pre-alert for aa:f2:5c:c0:9e:21 (<=5 min left)
+[2025-10-26 14:38:02] Device aa:f2:5c:c0:9e:21 blocked via tickUsage
+[2025-10-26 14:38:02] current_user_email(): using fallback -> admin@blockit.site
+[2025-10-26 14:38:04] Block email queued to admin@blockit.site for aa:f2:5c:c0:9e:21
+[2025-10-26 14:38:05] Device aa:f2:5c:c0:9e:21 blocked via tickUsage
+[2025-10-26 14:38:05] current_user_email(): using header X-User-Email -> zxcdlareg@gmail.com
+[2025-10-26 14:38:07] Block email queued to zxcdlareg@gmail.com for aa:f2:5c:c0:9e:21
+[2025-10-26 14:38:59] Router identity: MikroTik
+[2025-10-26 14:38:59] --- DEBUG: firewall filter snapshot start ---
+[2025-10-26 14:38:59] id=*C0 chain=forward act=drop mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 14:38:59] --- DEBUG: firewall filter snapshot end ---
+[2025-10-26 14:38:59] Matched TIME-LIMIT candidate: id=*C0 mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-26 14:38:59] Removed by .id successfully: id=*C0
+[2025-10-26 14:39:00] No TIME-LIMIT rules remain after removal attempt.
+[2025-10-26 14:39:00] Removed 1 TIME-LIMIT firewall rule(s) for aa:f2:5c:c0:9e:21
+[2025-10-26 14:39:00] Device aa:f2:5c:c0:9e:21 unblocked (timer cleared)
+[2025-10-26 15:05:47] current_user_email(): using header X-User-Email -> test@test.com
+[2025-10-27 11:29:29] Set daily limit 1 min for aa:f2:5c:c0:9e:21
+[2025-10-27 11:29:30] Pre-alert for aa:f2:5c:c0:9e:21 (<=5 min left)
+[2025-10-27 11:30:02] Device aa:f2:5c:c0:9e:21 blocked via tickUsage
+[2025-10-27 11:30:02] current_user_email(): using fallback -> admin@blockit.site
+[2025-10-27 11:30:04] Block email queued to admin@blockit.site for aa:f2:5c:c0:9e:21
+[2025-10-27 11:30:44] Router identity: MikroTik
+[2025-10-27 11:30:44] --- DEBUG: firewall filter snapshot start ---
+[2025-10-27 11:30:44] id=*C7 chain=forward act=drop mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-27 11:30:44] --- DEBUG: firewall filter snapshot end ---
+[2025-10-27 11:30:44] Matched TIME-LIMIT candidate: id=*C7 mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-10-27 11:30:44] Removed by .id successfully: id=*C7
+[2025-10-27 11:30:45] No TIME-LIMIT rules remain after removal attempt.
+[2025-10-27 11:30:45] Removed 1 TIME-LIMIT firewall rule(s) for aa:f2:5c:c0:9e:21
+[2025-10-27 11:30:45] Device aa:f2:5c:c0:9e:21 unblocked (timer cleared)
+[2025-11-04 00:44:32] current_user_email(): using header X-User-Email -> sukuna@gmail.com
+[2025-11-04 17:39:41] Set daily limit 5 min for aa:d3:75:b7:31:b0
+[2025-11-04 17:39:42] Pre-alert for aa:d3:75:b7:31:b0 (<=5 min left)
+[2025-11-04 17:42:39] Device aa:d3:75:b7:31:b0 blocked due to time limit
+[2025-11-04 17:42:39] current_user_email(): using header X-User-Email -> yournamesolara@gmail.com
+[2025-11-04 17:42:41] Block email queued to yournamesolara@gmail.com for aa:d3:75:b7:31:b0
+[2025-11-04 22:02:09] Set daily limit 70 min for aa:d3:75:b7:31:b0
+[2025-11-04 22:10:50] Set daily limit 100 min for aa:d3:75:b7:31:b0
+[2025-11-04 22:30:20] Set daily limit 30 min for aa:f2:5c:c0:9e:21
+[2025-11-04 22:43:01] Pre-alert for aa:f2:5c:c0:9e:21 (<=5 min left)
+[2025-11-04 22:45:36] Device aa:f2:5c:c0:9e:21 blocked due to time limit
+[2025-11-04 22:45:36] current_user_email(): using header X-User-Email -> yournamesolara@gmail.com
+[2025-11-04 22:45:38] Block email queued to yournamesolara@gmail.com for aa:f2:5c:c0:9e:21
+[2025-11-04 22:58:35] Pre-alert for aa:d3:75:b7:31:b0 (<=5 min left)
+[2025-11-04 23:01:02] Device aa:d3:75:b7:31:b0 blocked via tickUsage
+[2025-11-04 23:01:02] current_user_email(): using fallback -> admin@blockit.site
+[2025-11-04 23:01:03] Block email queued to admin@blockit.site for aa:d3:75:b7:31:b0
+[2025-11-04 23:34:07] Router identity: MikroTik
+[2025-11-04 23:34:07] --- DEBUG: firewall filter snapshot start ---
+[2025-11-04 23:34:07] id=*158 chain=forward act=drop mac=AA:D3:75:B7:31:B0 cmt="TIME-LIMIT [aa:d3:75:b7:31:b0]"
+[2025-11-04 23:34:07] id=*17D chain=forward act=drop mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-11-04 23:34:07] --- DEBUG: firewall filter snapshot end ---
+[2025-11-04 23:34:07] Matched TIME-LIMIT candidate: id=*158 mac=AA:D3:75:B7:31:B0 cmt="TIME-LIMIT [aa:d3:75:b7:31:b0]"
+[2025-11-04 23:34:07] Matched TIME-LIMIT candidate: id=*17D mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-11-04 23:34:07] Removed by .id successfully: id=*158
+[2025-11-04 23:34:07] Removed by .id successfully: id=*17D
+[2025-11-04 23:34:08] No TIME-LIMIT rules remain after removal attempt.
+[2025-11-04 23:34:08] Removed 2 TIME-LIMIT firewall rule(s) for aa:d3:75:b7:31:b0
+[2025-11-04 23:34:08] Device aa:d3:75:b7:31:b0 unblocked (timer cleared)
+[2025-11-04 23:34:16] Router identity: MikroTik
+[2025-11-04 23:34:17] --- DEBUG: firewall filter snapshot start ---
+[2025-11-04 23:34:17] --- DEBUG: firewall filter snapshot end ---
+[2025-11-04 23:34:17] No TIME-LIMIT candidates found for aa:f2:5c:c0:9e:21 (by comment or mac)
+[2025-11-04 23:34:17] Removed 0 TIME-LIMIT firewall rule(s) for aa:f2:5c:c0:9e:21
+[2025-11-04 23:34:17] Device aa:f2:5c:c0:9e:21 unblocked (timer cleared)
+[2025-11-05 00:02:48] current_user_email(): using header X-User-Email -> test@test.com
+[2025-11-05 00:03:50] Set daily limit 1 min for aa:d3:75:b7:31:b0
+[2025-11-05 00:03:51] Pre-alert for aa:d3:75:b7:31:b0 (<=5 min left)
+[2025-11-05 00:04:02] Device aa:d3:75:b7:31:b0 blocked via tickUsage
+[2025-11-05 00:04:02] current_user_email(): using fallback -> admin@blockit.site
+[2025-11-05 00:04:04] Block email queued to admin@blockit.site for aa:d3:75:b7:31:b0
+[2025-11-05 00:04:12] Router identity: MikroTik
+[2025-11-05 00:04:12] --- DEBUG: firewall filter snapshot start ---
+[2025-11-05 00:04:12] id=*1B2 chain=forward act=drop mac=AA:D3:75:B7:31:B0 cmt="TIME-LIMIT [aa:d3:75:b7:31:b0]"
+[2025-11-05 00:04:12] --- DEBUG: firewall filter snapshot end ---
+[2025-11-05 00:04:12] Matched TIME-LIMIT candidate: id=*1B2 mac=AA:D3:75:B7:31:B0 cmt="TIME-LIMIT [aa:d3:75:b7:31:b0]"
+[2025-11-05 00:04:13] Removed by .id successfully: id=*1B2
+[2025-11-05 00:04:13] No TIME-LIMIT rules remain after removal attempt.
+[2025-11-05 00:04:13] Removed 1 TIME-LIMIT firewall rule(s) for aa:d3:75:b7:31:b0
+[2025-11-05 00:04:13] Device aa:d3:75:b7:31:b0 unblocked (timer cleared)
+[2025-11-05 00:09:22] Set daily limit 1 min for aa:f2:5c:c0:9e:21
+[2025-11-05 00:09:26] Pre-alert for aa:f2:5c:c0:9e:21 (<=5 min left)
+[2025-11-05 00:10:04] Device aa:f2:5c:c0:9e:21 blocked via tickUsage
+[2025-11-05 00:10:04] current_user_email(): using fallback -> admin@blockit.site
+[2025-11-05 00:10:05] Block email queued to admin@blockit.site for aa:f2:5c:c0:9e:21
+[2025-11-05 00:12:16] Router identity: MikroTik
+[2025-11-05 00:12:17] --- DEBUG: firewall filter snapshot start ---
+[2025-11-05 00:12:17] id=*1B3 chain=forward act=drop mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-11-05 00:12:17] --- DEBUG: firewall filter snapshot end ---
+[2025-11-05 00:12:17] Matched TIME-LIMIT candidate: id=*1B3 mac=AA:F2:5C:C0:9E:21 cmt="TIME-LIMIT [aa:f2:5c:c0:9e:21]"
+[2025-11-05 00:12:17] Removed by .id successfully: id=*1B3
+[2025-11-05 00:12:17] No TIME-LIMIT rules remain after removal attempt.
+[2025-11-05 00:12:17] Removed 1 TIME-LIMIT firewall rule(s) for aa:f2:5c:c0:9e:21
+[2025-11-05 00:12:18] Device aa:f2:5c:c0:9e:21 unblocked (timer cleared)
+[2026-01-13 23:13:09] current_user_email(): using header X-User-Email -> yournamesolara@gmail.com
+[2026-01-13 23:20:43] Set weekly limit 60 min for 5e:32:62:c8:51:5a
+[2026-01-13 23:24:07] Set daily limit 1 min for 5e:32:62:c8:51:5a
+[2026-01-13 23:24:08] Pre-alert for 5e:32:62:c8:51:5a (<=5 min left)
+[2026-01-13 23:25:02] Device 5e:32:62:c8:51:5a blocked via tickUsage
+[2026-01-13 23:25:02] current_user_email(): using fallback -> admin@blockit.site
+[2026-01-13 23:25:04] Block email queued to admin@blockit.site for 5e:32:62:c8:51:5a
+[2026-01-13 23:28:46] Router identity: MikroTik
+[2026-01-13 23:28:46] --- DEBUG: firewall filter snapshot start ---
+[2026-01-13 23:28:46] id=*22C chain=forward act=drop mac=5E:32:62:C8:51:5A cmt="TIME-LIMIT [5e:32:62:c8:51:5a]"
+[2026-01-13 23:28:46] --- DEBUG: firewall filter snapshot end ---
+[2026-01-13 23:28:46] Matched TIME-LIMIT candidate: id=*22C mac=5E:32:62:C8:51:5A cmt="TIME-LIMIT [5e:32:62:c8:51:5a]"
+[2026-01-13 23:28:46] Removed by .id successfully: id=*22C
+[2026-01-13 23:28:47] No TIME-LIMIT rules remain after removal attempt.
+[2026-01-13 23:28:47] Removed 1 TIME-LIMIT firewall rule(s) for 5e:32:62:c8:51:5a
+[2026-01-13 23:28:47] Device 5e:32:62:c8:51:5a unblocked (timer cleared)
+[2026-01-13 23:28:59] Set daily limit 1 min for 5e:32:62:c8:51:5a
+[2026-01-13 23:29:01] Pre-alert for 5e:32:62:c8:51:5a (<=5 min left)
+[2026-01-13 23:29:02] Device 5e:32:62:c8:51:5a blocked via tickUsage
+[2026-01-13 23:29:02] current_user_email(): using fallback -> admin@blockit.site
+[2026-01-13 23:29:03] Pre-alert for 5e:32:62:c8:51:5a (<=5 min left)
+[2026-01-13 23:29:04] Block email queued to admin@blockit.site for 5e:32:62:c8:51:5a
+[2026-01-13 23:29:40] Router identity: MikroTik
+[2026-01-13 23:29:41] --- DEBUG: firewall filter snapshot start ---
+[2026-01-13 23:29:41] id=*22D chain=forward act=drop mac=5E:32:62:C8:51:5A cmt="TIME-LIMIT [5e:32:62:c8:51:5a]"
+[2026-01-13 23:29:41] --- DEBUG: firewall filter snapshot end ---
+[2026-01-13 23:29:41] Matched TIME-LIMIT candidate: id=*22D mac=5E:32:62:C8:51:5A cmt="TIME-LIMIT [5e:32:62:c8:51:5a]"
+[2026-01-13 23:29:41] Removed by .id successfully: id=*22D
+[2026-01-13 23:29:41] No TIME-LIMIT rules remain after removal attempt.
+[2026-01-13 23:29:41] Removed 1 TIME-LIMIT firewall rule(s) for 5e:32:62:c8:51:5a
+[2026-01-13 23:29:42] Device 5e:32:62:c8:51:5a unblocked (timer cleared)
