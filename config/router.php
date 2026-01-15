@@ -16,7 +16,7 @@ $env = static function (string $key, $default = null) {
 
 return [
     // MikroTik RouterOS
-    'host'     => (string)$env('BLOCKIT_ROUTER_HOST', '10.10.20.10'),
+    'host'     => (string)$env('BLOCKIT_ROUTER_HOST', '10.10.20.10),
     'api_port' => (int)$env('BLOCKIT_ROUTER_PORT', 8729),
     'api_tls'  => filter_var($env('BLOCKIT_ROUTER_TLS', 'true'), FILTER_VALIDATE_BOOLEAN),
     'user'     => (string)$env('BLOCKIT_ROUTER_USER', 'api-dashboard'),
