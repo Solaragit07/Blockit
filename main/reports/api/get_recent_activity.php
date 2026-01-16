@@ -27,11 +27,18 @@ $user    = $config['user']     ?? 'api-dashboard';
 $pass    = $config['pass']     ?? '';
 $timeout = (int)($config['timeout'] ?? 8);
 
-// === Inputs from dashboard (POST) ===
-$device = isset($_POST['device']) ? trim((string)$_POST['device']) : '';
-$since  = isset($_POST['since'])  ? trim((string)$_POST['since'])  : ''; // "YYYY-MM-DDTHH:MM"
-$until  = isset($_POST['until'])  ? trim((string)$_POST['until'])  : '';
-$limit  = isset($_POST['limit'])  ? (int)$_POST['limit']           : 200;
+// === Inputs from dashboard (JSON POST preferred; fallback to form POST) ===
+$rawBody = file_get_contents('php://input');
+$jsonBody = [];
+if (is_string($rawBody) && trim($rawBody) !== '') {
+  $decoded = json_decode($rawBody, true);
+  if (is_array($decoded)) $jsonBody = $decoded;
+}
+
+$device = trim((string)($jsonBody['device'] ?? ($_POST['device'] ?? '')));
+$since  = trim((string)($jsonBody['since']  ?? ($_POST['since']  ?? ''))); // "YYYY-MM-DDTHH:MM"
+$until  = trim((string)($jsonBody['until']  ?? ($_POST['until']  ?? '')));
+$limit  = (int)($jsonBody['limit'] ?? ($_POST['limit'] ?? 200));
 $limit  = max(1, min(500, $limit));
 
 // Normalize "datetime-local" → "YYYY-MM-DD HH:MM"

@@ -224,6 +224,38 @@ if (session_status() === PHP_SESSION_NONE) session_start();
               </div>
             </article>
 
+            <article class="mk-card" aria-labelledby="topblocked-title" style="margin-top:12px">
+              <div class="mk-hd">
+                <h3 id="topblocked-title"><i class="fa-solid fa-ban"></i> Top Blocked Websites</h3>
+                <span class="chip" title="Aggregated from MySQL logs">Most frequent attempts</span>
+              </div>
+              <div class="mk-body">
+
+                <div class="filters" style="margin-bottom:10px">
+                  <input id="tb-device" class="input" placeholder="Device name or IP (optional)"/>
+                  <select id="tb-sort" class="select">
+                    <option value="attempts">Sort: Attempts</option>
+                    <option value="last">Sort: Most recent</option>
+                  </select>
+                  <input type="datetime-local" id="tb-since" class="input"/>
+                  <input type="datetime-local" id="tb-until" class="input"/>
+                </div>
+
+                <div class="actions" style="justify-content:flex-end; margin:6px 0 10px">
+                  <button id="tb-apply" class="btn btn-ghost" type="button"><i class="fa-solid fa-filter"></i> Filter</button>
+                  <button id="tb-refresh" class="btn btn-primary" type="button"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                </div>
+
+                <div class="table-wrap">
+                  <table class="table" id="tbl-tb">
+                    <thead><tr><th>Website</th><th>Attempts</th><th>Last Attempt</th></tr></thead>
+                    <tbody><tr><td colspan="3" class="table-empty">Loading…</td></tr></tbody>
+                  </table>
+                </div>
+
+              </div>
+            </article>
+
           </section>
         </div>
       </div>
@@ -240,6 +272,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
   <script>
   const API_KEY = "c6d93fd745d852657b700d865690c8bee8a5fe66104a6248291d54b1e899e0a5";
   const RECENT_URL = "/main/reports/api/get_recent_activity.php";
+  const TOP_BLOCKED_URL = "/main/reports/api/get_top_blocked_sites.php";
   let recentRows = [];
 
   const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -266,6 +299,29 @@ if (session_status() === PHP_SESSION_NONE) session_start();
       recentRows=j.rows||[];
       tb.innerHTML=renderRows(recentRows);
     }catch(e){tb.innerHTML=`<tr><td colspan="5" class="table-empty">Error loading data: ${esc(e.message)}</td></tr>`;}
+  }
+
+  function renderTopBlocked(rows){
+    if(!rows||!rows.length)return'<tr><td colspan="3" class="table-empty">No blocked website attempts found</td></tr>';
+    return rows.map(r=>`<tr class="row-bad"><td>${esc(r.site)}</td><td>${esc(r.attempts)}</td><td>${esc(r.lastAttempt)}</td></tr>`).join('');
+  }
+
+  async function loadTopBlocked(){
+    const tb=document.querySelector('#tbl-tb tbody');
+    tb.innerHTML='<tr><td colspan="3" class="table-empty">Loading…</td></tr>';
+    const body={
+      device:document.getElementById('tb-device').value||'',
+      sort:document.getElementById('tb-sort').value||'attempts',
+      since:document.getElementById('tb-since').value||'',
+      until:document.getElementById('tb-until').value||'',
+      limit:50
+    };
+    try{
+      const j=await getJSON(TOP_BLOCKED_URL,body);
+      tb.innerHTML=renderTopBlocked(j.rows||[]);
+    }catch(e){
+      tb.innerHTML=`<tr><td colspan="3" class="table-empty">Error loading data: ${esc(e.message)}</td></tr>`;
+    }
   }
 
   // Download CSV feature
@@ -317,7 +373,15 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
   document.getElementById('ra-apply')?.addEventListener('click',loadRecent);
   document.getElementById('do-refresh')?.addEventListener('click',loadRecent);
-  (async()=>{await loadRecent();setInterval(loadRecent,15000);})();
+
+  document.getElementById('tb-apply')?.addEventListener('click',loadTopBlocked);
+  document.getElementById('tb-refresh')?.addEventListener('click',loadTopBlocked);
+
+  (async()=>{
+    await loadRecent();
+    await loadTopBlocked();
+    setInterval(loadRecent,15000);
+  })();
   </script>
 </body>
 </html>

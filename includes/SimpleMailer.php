@@ -8,15 +8,23 @@ class SimpleMailer
 {
     private $host = 'smtp.gmail.com';
     private $port = 587;
-    private $username = 'jeanncorollo04@gmail.com';
-    private $password = 'lbqc tjaj nple magx';
-    private $from = 'jeanncorollo04@gmail.com';
+    private $username = '';
+    private $password = '';
+    private $from = '';
     private $fromName = 'BlockIT System';
     private $debug = false;
     
-    public function __construct($debug = false)
+    public function __construct($debug = false, array $settings = [])
     {
         $this->debug = $debug;
+
+        // Apply provided settings (typically from EmailConfig::getSmtpSettings())
+        if (!empty($settings['host'])) $this->host = (string)$settings['host'];
+        if (!empty($settings['port'])) $this->port = (int)$settings['port'];
+        if (isset($settings['username'])) $this->username = (string)$settings['username'];
+        if (isset($settings['password'])) $this->password = (string)$settings['password'];
+        if (isset($settings['from'])) $this->from = (string)$settings['from'];
+        if (!empty($settings['fromName'])) $this->fromName = (string)$settings['fromName'];
     }
     
     private function debug($message)
@@ -35,6 +43,10 @@ class SimpleMailer
     public function sendMail($to, $subject, $body, $isHTML = true)
     {
         try {
+            if ($this->username === '' || $this->password === '' || $this->from === '') {
+                throw new Exception('SMTP is not configured. Set BLOCKIT_SMTP_USER, BLOCKIT_SMTP_PASS, and BLOCKIT_SMTP_FROM (or omit FROM to default to USER).');
+            }
+
             // Connect to Gmail SMTP
             $this->debug("Connecting to {$this->host}:{$this->port}");
             

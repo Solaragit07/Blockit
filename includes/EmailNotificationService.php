@@ -30,13 +30,13 @@ class EmailNotificationService
                 $this->adminEmail = $row['email'];
                 $this->adminName = $row['name'];
             } else {
-                // Fallback to default
-                $this->adminEmail = 'jeanncorollo04@gmail.com';
+                // Fallback to SMTP-configured default sender email
+                $this->adminEmail = EmailConfig::getDefaultRecipientEmail();
                 $this->adminName = 'BlockIT Admin';
             }
         } catch (Exception $e) {
-            // Fallback to default
-            $this->adminEmail = 'jeanncorollo04@gmail.com';
+            // Fallback to SMTP-configured default sender email
+            $this->adminEmail = EmailConfig::getDefaultRecipientEmail();
             $this->adminName = 'BlockIT Admin';
         }
     }

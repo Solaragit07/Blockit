@@ -4,14 +4,171 @@
  * This file handles all redirected blocked domain requests
  */
 
+declare(strict_types=1);
+
+function client_ip(): string {
+    $candidates = [
+        $_SERVER['HTTP_CF_CONNECTING_IP'] ?? '',
+        $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '',
+        $_SERVER['HTTP_X_REAL_IP'] ?? '',
+        $_SERVER['REMOTE_ADDR'] ?? '',
+    ];
+
+    foreach ($candidates as $value) {
+        if (!$value) continue;
+        // XFF may contain a list
+        $first = trim(explode(',', $value)[0] ?? '');
+        if ($first && filter_var($first, FILTER_VALIDATE_IP)) {
+            return $first;
+        }
+    }
+
+    return 'Unknown';
+}
+
+function normalize_domain(string $host): string {
+    $host = strtolower(trim($host));
+    // strip port
+    $host = preg_replace('/:\\d+$/', '', $host);
+    // allow only hostname-ish chars
+    $host = preg_replace('/[^a-z0-9.\-]/', '', $host);
+    return $host;
+}
+
+function safe_user_agent(): string {
+    $ua = (string)($_SERVER['HTTP_USER_AGENT'] ?? '');
+    // prevent huge inserts
+    if (strlen($ua) > 500) $ua = substr($ua, 0, 500);
+    return $ua;
+}
+
 // Get the originally requested domain
-$requestedDomain = $_SERVER['HTTP_HOST'] ?? '';
+$requestedDomain = normalize_domain((string)($_SERVER['HTTP_HOST'] ?? ''));
 $requestedURL = $_SERVER['REQUEST_URI'] ?? '';
 $fullURL = $requestedDomain . $requestedURL;
 
 // Log the blocked access attempt
-$logEntry = date('Y-m-d H:i:s') . " - Blocked access to: $fullURL from IP: " . ($_SERVER['REMOTE_ADDR'] ?? 'Unknown') . "\n";
+$ip = client_ip();
+$logEntry = date('Y-m-d H:i:s') . " - Blocked access to: $fullURL from IP: " . $ip . "\n";
 file_put_contents('blocked_access.log', $logEntry, FILE_APPEND | LOCK_EX);
+
+// Also record to DB + optionally send email alert (throttled)
+try {
+    $APP_ROOT = __DIR__;
+    $mysqlFile = $APP_ROOT . '/connectMySql.php';
+    if (file_exists($mysqlFile)) {
+        require_once $mysqlFile;
+
+        if (isset($conn) && $conn instanceof mysqli) {
+            // Ensure logs table exists (safe no-op if already present)
+            $conn->query("CREATE TABLE IF NOT EXISTS `logs` (
+                `id` int(11) NOT NULL AUTO_INCREMENT,
+                `type` varchar(255) DEFAULT NULL,
+                `domain` varchar(255) DEFAULT NULL,
+                `device_id` int(11) DEFAULT NULL,
+                `ip_address` varchar(45) DEFAULT NULL,
+                `user_agent` text DEFAULT NULL,
+                `action` enum('blocked','allowed','redirected') DEFAULT 'blocked',
+                `reason` varchar(255) DEFAULT NULL,
+                `date` datetime DEFAULT current_timestamp(),
+                `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+                `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (`id`),
+                KEY `idx_logs_date` (`date`),
+                KEY `idx_logs_device` (`device_id`),
+                KEY `idx_logs_domain` (`domain`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
+
+            // Try to resolve device_id by ip_address
+            $deviceId = null;
+            $deviceName = $ip !== 'Unknown' ? $ip : 'Unknown Device';
+
+            $deviceColsRes = $conn->query("SHOW COLUMNS FROM `device`");
+            if ($deviceColsRes) {
+                $deviceCols = [];
+                while ($c = $deviceColsRes->fetch_assoc()) {
+                    $deviceCols[$c['Field']] = true;
+                }
+                $nameCol = null;
+                foreach (['device_name', 'name', 'device'] as $cand) {
+                    if (isset($deviceCols[$cand])) { $nameCol = $cand; break; }
+                }
+                if ($nameCol && isset($deviceCols['ip_address']) && $ip !== 'Unknown') {
+                    $stmt = $conn->prepare("SELECT `id`, `$nameCol` AS n FROM `device` WHERE `ip_address` = ? LIMIT 1");
+                    if ($stmt) {
+                        $stmt->bind_param('s', $ip);
+                        if ($stmt->execute()) {
+                            $row = $stmt->get_result()->fetch_assoc();
+                            if ($row) {
+                                $deviceId = (int)$row['id'];
+                                if (!empty($row['n'])) $deviceName = (string)$row['n'];
+                            }
+                        }
+                        $stmt->close();
+                    }
+                }
+            }
+
+            $ua = safe_user_agent();
+            $reason = 'dns_redirect';
+            $type = 'blocked';
+            $action = 'blocked';
+
+            $stmt = $conn->prepare('INSERT INTO `logs` (`type`,`domain`,`device_id`,`ip_address`,`user_agent`,`action`,`reason`) VALUES (?,?,?,?,?,?,?)');
+            if ($stmt) {
+                $stmt->bind_param('ssissss', $type, $requestedDomain, $deviceId, $ip, $ua, $action, $reason);
+                $stmt->execute();
+                $stmt->close();
+            }
+
+            // Email throttling table
+            $conn->query("CREATE TABLE IF NOT EXISTS `blocked_email_throttle` (
+                `id` int(11) NOT NULL AUTO_INCREMENT,
+                `device_key` varchar(128) NOT NULL,
+                `domain` varchar(255) NOT NULL,
+                `last_sent` datetime NOT NULL,
+                PRIMARY KEY (`id`),
+                UNIQUE KEY `uniq_device_domain` (`device_key`, `domain`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
+
+            $deviceKey = $deviceId ? ('device:' . $deviceId) : ('ip:' . $ip);
+            $cooldownSeconds = 300; // 5 minutes
+            $sendEmail = true;
+
+            $stmt = $conn->prepare('SELECT `last_sent` FROM `blocked_email_throttle` WHERE `device_key`=? AND `domain`=? LIMIT 1');
+            if ($stmt) {
+                $stmt->bind_param('ss', $deviceKey, $requestedDomain);
+                if ($stmt->execute()) {
+                    $row = $stmt->get_result()->fetch_assoc();
+                    if ($row && !empty($row['last_sent'])) {
+                        $last = strtotime((string)$row['last_sent']);
+                        if ($last && (time() - $last) < $cooldownSeconds) {
+                            $sendEmail = false;
+                        }
+                    }
+                }
+                $stmt->close();
+            }
+
+            if ($sendEmail && file_exists($APP_ROOT . '/email_functions.php')) {
+                require_once $APP_ROOT . '/email_functions.php';
+                if (function_exists('notifyWebsiteBlocked')) {
+                    @notifyWebsiteBlocked($deviceName, $requestedDomain);
+                }
+
+                $now = date('Y-m-d H:i:s');
+                $stmt = $conn->prepare('INSERT INTO `blocked_email_throttle` (`device_key`,`domain`,`last_sent`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE `last_sent`=VALUES(`last_sent`)');
+                if ($stmt) {
+                    $stmt->bind_param('sss', $deviceKey, $requestedDomain, $now);
+                    $stmt->execute();
+                    $stmt->close();
+                }
+            }
+        }
+    }
+} catch (Throwable $e) {
+    error_log('redirect_handler logging/email failed: ' . $e->getMessage());
+}
 
 ?>
 <!DOCTYPE html>

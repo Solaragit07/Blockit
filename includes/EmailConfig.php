@@ -6,18 +6,14 @@
 
 class EmailConfig
 {
-    // Gmail SMTP Configuration
+    // Gmail SMTP defaults (override via environment variables)
     const SMTP_HOST = 'smtp.gmail.com';
     const SMTP_PORT = 587;
     const SMTP_SECURE = 'tls';
     const SMTP_AUTH = true;
-    
-    // Your Gmail credentials
-    const SMTP_USERNAME = 'jeanncorollo04@gmail.com';
-    const SMTP_PASSWORD = 'lbqc tjaj nple magx';
-    
-    // Default sender information
-    const FROM_EMAIL = 'jeanncorollo04@gmail.com';
+
+    // Default sender information (override via environment variables)
+    const FROM_EMAIL = '';
     const FROM_NAME = 'BlockIT System';
     
     // Email templates
@@ -26,9 +22,52 @@ class EmailConfig
     public static function getMailer()
     {
         require_once __DIR__ . '/SimpleMailer.php';
-        
-        $mail = new SimpleMailer();
+
+        $mail = new SimpleMailer(false, self::getSmtpSettings());
         return $mail;
+    }
+
+    /**
+     * Environment-driven SMTP settings.
+     *
+     * Recommended env vars:
+     * - BLOCKIT_SMTP_USER
+     * - BLOCKIT_SMTP_PASS (Gmail App Password)
+     * - BLOCKIT_SMTP_FROM (optional; defaults to user)
+     * - BLOCKIT_SMTP_FROM_NAME
+     * - BLOCKIT_SMTP_HOST (optional)
+     * - BLOCKIT_SMTP_PORT (optional)
+     */
+    public static function getSmtpSettings(): array
+    {
+        $env = static function (string $key, $default = null) {
+            $v = getenv($key);
+            if ($v === false || $v === '') return $default;
+            return $v;
+        };
+
+        $user = (string)$env('BLOCKIT_SMTP_USER', '');
+        $pass = (string)$env('BLOCKIT_SMTP_PASS', '');
+        // Gmail app passwords are often displayed with spaces; SMTP expects no spaces.
+        $pass = preg_replace('/\s+/', '', $pass);
+        $from = (string)$env('BLOCKIT_SMTP_FROM', self::FROM_EMAIL);
+        if ($from === '' && $user !== '') $from = $user;
+
+        return [
+            'host' => (string)$env('BLOCKIT_SMTP_HOST', self::SMTP_HOST),
+            'port' => (int)$env('BLOCKIT_SMTP_PORT', self::SMTP_PORT),
+            'username' => $user,
+            'password' => $pass,
+            'from' => $from,
+            'fromName' => (string)$env('BLOCKIT_SMTP_FROM_NAME', self::FROM_NAME),
+        ];
+    }
+
+    /** Fallback recipient email when admin record is missing. */
+    public static function getDefaultRecipientEmail(): string
+    {
+        $s = self::getSmtpSettings();
+        return (string)($s['from'] ?? '');
     }
     
     public static function sendNotificationEmail($to, $subject, $message, $isHTML = true)
@@ -109,7 +148,7 @@ class EmailConfig
                 <li><strong>SMTP Server:</strong> " . self::SMTP_HOST . "</li>
                 <li><strong>Port:</strong> " . self::SMTP_PORT . "</li>
                 <li><strong>Encryption:</strong> " . strtoupper(self::SMTP_SECURE) . "</li>
-                <li><strong>From Email:</strong> " . self::FROM_EMAIL . "</li>
+                <li><strong>From Email:</strong> " . (self::getSmtpSettings()['from'] ?? '') . "</li>
             </ul>
         </div>
         
