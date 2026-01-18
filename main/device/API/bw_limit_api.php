@@ -239,6 +239,7 @@ switch ($action){
       $qq = $q[$name] ?? [];
       $out[] = [
         'mac'=>$d['mac'], 'ip'=>$d['ip'], 'name'=>$d['name'],
+        'has_queue'=> isset($q[$name]) ? true : false,
         'max_down_kbps'=>$qq['max_down_kbps']??0,
         'max_up_kbps'=>$qq['max_up_kbps']??0,
         'is_priority_device'=>isset($qq['priority']) ? (($qq['priority']??8) <= 2) : false,

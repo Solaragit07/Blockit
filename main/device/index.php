@@ -239,7 +239,13 @@ async function loadDevices(){
     const priority = d.is_priority_device? '<span class="badge badge-success">Priority</span>' : '<span class="badge">Normal</span>';
     const rxRate = Number(d.rx_rate_kbps) || 0;
     const txRate = Number(d.tx_rate_kbps) || 0;
-    const now = `<span class="rate">${rxRate} kbps / ${txRate} kbps</span>`;
+    const hasQueue = !!d.has_queue;
+    const nowTitle = hasQueue
+      ? 'Live rate from RouterOS simple queue (0 means idle/no traffic)'
+      : 'No bandwidth queue exists for this device yet. Set a limit to create one.';
+    const now = hasQueue
+      ? `<span class="rate" title="${nowTitle}">${rxRate} kbps / ${txRate} kbps</span>`
+      : `<span class="rate" title="${nowTitle}">—</span>`;
 
     const tr=document.createElement('tr');
     tr.innerHTML = `
