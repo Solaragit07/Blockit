@@ -256,6 +256,67 @@ if (session_status() === PHP_SESSION_NONE) session_start();
               </div>
             </article>
 
+            <article class="mk-card" aria-labelledby="recentblocked-title" style="margin-top:12px">
+              <div class="mk-hd">
+                <h3 id="recentblocked-title"><i class="fa-solid fa-shield-halved"></i> Recent Blocked Website Access</h3>
+                <span class="chip" title="Logged when a user hits a blocked site">Auto refresh 15s</span>
+              </div>
+              <div class="mk-body">
+
+                <div class="filters" style="margin-bottom:10px">
+                  <input id="rb-device" class="input" placeholder="Device name or IP (optional)"/>
+                  <input type="datetime-local" id="rb-since" class="input"/>
+                  <input type="datetime-local" id="rb-until" class="input"/>
+                  <div></div>
+                </div>
+
+                <div class="actions" style="justify-content:flex-end; margin:6px 0 10px">
+                  <button id="rb-apply" class="btn btn-ghost" type="button"><i class="fa-solid fa-filter"></i> Filter</button>
+                  <button id="rb-refresh" class="btn btn-primary" type="button"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                </div>
+
+                <div class="table-wrap">
+                  <table class="table" id="tbl-rb">
+                    <thead><tr><th>Time</th><th>Device</th><th>IP</th><th>Website</th><th>Reason</th></tr></thead>
+                    <tbody><tr><td colspan="5" class="table-empty">Loading…</td></tr></tbody>
+                  </table>
+                </div>
+
+              </div>
+            </article>
+
+            <article class="mk-card" aria-labelledby="blockeddevices-title" style="margin-top:12px">
+              <div class="mk-hd">
+                <h3 id="blockeddevices-title"><i class="fa-solid fa-desktop"></i> Blocked Attempts per Device</h3>
+                <span class="chip" title="Aggregated from MySQL logs">Attempts per device</span>
+              </div>
+              <div class="mk-body">
+
+                <div class="filters" style="margin-bottom:10px">
+                  <input id="bd-device" class="input" placeholder="Device name or IP (optional)"/>
+                  <select id="bd-sort" class="select">
+                    <option value="attempts">Sort: Attempts</option>
+                    <option value="last">Sort: Most recent</option>
+                  </select>
+                  <input type="datetime-local" id="bd-since" class="input"/>
+                  <input type="datetime-local" id="bd-until" class="input"/>
+                </div>
+
+                <div class="actions" style="justify-content:flex-end; margin:6px 0 10px">
+                  <button id="bd-apply" class="btn btn-ghost" type="button"><i class="fa-solid fa-filter"></i> Filter</button>
+                  <button id="bd-refresh" class="btn btn-primary" type="button"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                </div>
+
+                <div class="table-wrap">
+                  <table class="table" id="tbl-bd">
+                    <thead><tr><th>Device</th><th>IP</th><th>Attempts</th><th>Last Attempt</th></tr></thead>
+                    <tbody><tr><td colspan="4" class="table-empty">Loading…</td></tr></tbody>
+                  </table>
+                </div>
+
+              </div>
+            </article>
+
           </section>
         </div>
       </div>
@@ -273,6 +334,8 @@ if (session_status() === PHP_SESSION_NONE) session_start();
   const API_KEY = "c6d93fd745d852657b700d865690c8bee8a5fe66104a6248291d54b1e899e0a5";
   const RECENT_URL = "/main/reports/api/get_recent_activity.php";
   const TOP_BLOCKED_URL = "/main/reports/api/get_top_blocked_sites.php";
+  const RECENT_BLOCKED_URL = "/main/reports/api/get_recent_blocked_attempts.php";
+  const BLOCKED_BY_DEVICE_URL = "/main/reports/api/get_block_attempts_by_device.php";
   let recentRows = [];
 
   const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -425,10 +488,67 @@ if (session_status() === PHP_SESSION_NONE) session_start();
   document.getElementById('tb-apply')?.addEventListener('click',loadTopBlocked);
   document.getElementById('tb-refresh')?.addEventListener('click',loadTopBlocked);
 
+  document.getElementById('rb-apply')?.addEventListener('click',loadRecentBlocked);
+  document.getElementById('rb-refresh')?.addEventListener('click',loadRecentBlocked);
+
+  document.getElementById('bd-apply')?.addEventListener('click',loadBlockedByDevice);
+  document.getElementById('bd-refresh')?.addEventListener('click',loadBlockedByDevice);
+
+  function renderRecentBlocked(rows){
+    if(!rows||!rows.length)return'<tr><td colspan="5" class="table-empty">No blocked attempts yet</td></tr>';
+    return rows.map(r=>`<tr class="row-bad"><td>${esc(r.time)}</td><td>${esc(r.device||'')}</td><td>${esc(r.ip||'')}</td><td>${esc(r.site||'')}</td><td>${esc(r.reason||'')}</td></tr>`).join('');
+  }
+
+  async function loadRecentBlocked(){
+    const tb=document.querySelector('#tbl-rb tbody');
+    tb.innerHTML='<tr><td colspan="5" class="table-empty">Loading…</td></tr>';
+    const body={
+      device:document.getElementById('rb-device').value||'',
+      since:document.getElementById('rb-since').value||'',
+      until:document.getElementById('rb-until').value||'',
+      limit:100
+    };
+    try{
+      const j=await getJSON(RECENT_BLOCKED_URL,body);
+      if (j && j.ok === false) throw new Error(j.message || 'API error');
+      tb.innerHTML=renderRecentBlocked(j.rows||[]);
+    }catch(e){
+      tb.innerHTML=`<tr><td colspan="5" class="table-empty">Error loading data: ${esc(e.message)}</td></tr>`;
+    }
+  }
+
+  function renderBlockedByDevice(rows){
+    if(!rows||!rows.length)return'<tr><td colspan="4" class="table-empty">No blocked attempts yet</td></tr>';
+    return rows.map(r=>`<tr class="row-bad"><td>${esc(r.device||'')}</td><td>${esc(r.ip||'')}</td><td>${esc(r.attempts)}</td><td>${esc(r.lastAttempt||'')}</td></tr>`).join('');
+  }
+
+  async function loadBlockedByDevice(){
+    const tb=document.querySelector('#tbl-bd tbody');
+    tb.innerHTML='<tr><td colspan="4" class="table-empty">Loading…</td></tr>';
+    const body={
+      device:document.getElementById('bd-device').value||'',
+      sort:document.getElementById('bd-sort').value||'attempts',
+      since:document.getElementById('bd-since').value||'',
+      until:document.getElementById('bd-until').value||'',
+      limit:50
+    };
+    try{
+      const j=await getJSON(BLOCKED_BY_DEVICE_URL,body);
+      if (j && j.ok === false) throw new Error(j.message || 'API error');
+      tb.innerHTML=renderBlockedByDevice(j.rows||[]);
+    }catch(e){
+      tb.innerHTML=`<tr><td colspan="4" class="table-empty">Error loading data: ${esc(e.message)}</td></tr>`;
+    }
+  }
+
   (async()=>{
     await loadRecent({showLoading:true});
     await loadTopBlocked();
+    await loadRecentBlocked();
+    await loadBlockedByDevice();
     setInterval(()=>loadRecent({showLoading:false}),15000);
+    setInterval(()=>loadRecentBlocked(),15000);
+    setInterval(()=>loadBlockedByDevice(),15000);
   })();
   </script>
 </body>
