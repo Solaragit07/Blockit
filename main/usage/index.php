@@ -118,6 +118,23 @@ const API_KEY=<?php echo json_encode($API_KEY,JSON_UNESCAPED_SLASHES); ?>;
 const API_URL="./API/time_limit_api.php";
 const USER_EMAIL = <?php echo json_encode($_SESSION['email'] ?? null); ?>;
 
+function hasSwal(){ return typeof window.Swal !== 'undefined' && typeof window.Swal.fire === 'function'; }
+
+async function uiConfirm(title, text, confirmText='OK'){
+  if (hasSwal()){
+    const r = await Swal.fire({title, text, icon:'question', showCancelButton:true, confirmButtonText:confirmText});
+    return !!r.isConfirmed;
+  }
+  return window.confirm((title ? title + "\n\n" : "") + (text || ''));
+}
+
+function fmtMin(v){
+  if (v === null || typeof v === 'undefined') return null;
+  const n = Number(v);
+  if (!Number.isFinite(n)) return null;
+  return Math.round(n * 10) / 10;
+}
+
 async function api(action, payload = {}, method = 'GET') {
   const opts = {
     method,
@@ -130,6 +147,7 @@ async function api(action, payload = {}, method = 'GET') {
     cache: 'no-store'
   };
 
+  // Keep requests relative to /main/usage/
   const url = `API/time_limit_api.php?action=${encodeURIComponent(action)}`;
   if (method === 'POST') {
     opts.body = JSON.stringify(payload);
@@ -173,19 +191,25 @@ async function loadDevices(){
     const opt=document.createElement('option');
     opt.value=d.mac; opt.textContent=`${d.name||'Unknown'} (${d.mac})`;
     sel.appendChild(opt);
-    const used = Number(d.used ?? 0);
-    const minutes = d.minutes ?? null;
-    const remaining = minutes === null ? null : Math.max(Number(minutes) - used, 0);
+    const used = fmtMin(d.used ?? 0) ?? 0;
+    const minutes = fmtMin(d.minutes ?? null);
+    const remaining = minutes === null ? null : Math.max(fmtMin(minutes - used) ?? 0, 0);
     const tr=document.createElement('tr');
     tr.innerHTML=`<td>${d.name||'Unknown'}<br><small>${d.mac}</small></td>
       <td>${d.ip||''}</td>
       <td><span class="badge ${d.status==='blocked'?'badge-blocked':'badge-active'}">${d.status||'active'}</span></td>
-      <td>${used}/${minutes ?? '-'} min</td>
-      <td>${remaining === null ? '-' : `${remaining} min`}</td>
-      <td>${
-        d.status==='blocked'
-        ? `<button class="btn btn-success btn-unblock" data-mac="${d.mac}"><i class="fa-solid fa-unlock"></i> Unblock</button>`
-        : `<button class="btn btn-ghost btn-block" data-mac="${d.mac}"><i class="fa-solid fa-ban"></i> Block Now</button>`}</td>`;
+      <td>${minutes === null ? `${used}/Not set min` : `${used}/${minutes} min`}</td>
+      <td>${remaining === null ? 'Not set' : `${remaining} min`}</td>
+      <td>${(() => {
+        const mac = d.mac;
+        const blockBtn = d.status==='blocked'
+          ? `<button type="button" class="btn btn-success btn-unblock" data-mac="${mac}"><i class="fa-solid fa-unlock"></i> Unblock</button>`
+          : `<button type="button" class="btn btn-ghost btn-block" data-mac="${mac}"><i class="fa-solid fa-ban"></i> Block Now</button>`;
+        const setBtn = (minutes === null)
+          ? ` <button type="button" class="btn btn-success btn-set" data-mac="${mac}"><i class="fa-solid fa-clock"></i> Set Limit</button>`
+          : '';
+        return blockBtn + setBtn;
+      })()}</td>`;
     tbody.appendChild(tr);
   });
 
@@ -199,10 +223,11 @@ async function loadDevices(){
       const mac = btn.dataset.mac;
       try {
         const r = await api('unblock', { mac }, 'POST');
-        Swal.fire({icon:'success', title:'Unblocked', text:r.message, timer:1400, showConfirmButton:false});
+        if (hasSwal()) Swal.fire({icon:'success', title:'Unblocked', text:r.message, timer:1400, showConfirmButton:false});
         await Promise.all([loadDevices(), loadLogs()]);
       } catch(e) {
-        Swal.fire({icon:'error', title:'Error', text:e.message});
+        if (hasSwal()) Swal.fire({icon:'error', title:'Error', text:e.message});
+        else alert('Error: ' + e.message);
       }
     };
   });
@@ -210,14 +235,26 @@ async function loadDevices(){
   document.querySelectorAll('.btn-block').forEach(btn=>{
     btn.onclick = async () => {
       const mac = btn.dataset.mac;
-      if(!(await Swal.fire({title:'Block this device now?',showCancelButton:true,confirmButtonText:'Block'})).isConfirmed) return;
+      const ok = await uiConfirm('Block this device now?', mac, 'Block');
+      if(!ok) return;
       try {
         const r = await api('block', { mac }, 'POST');
-        Swal.fire({icon:'success', title:'Blocked', text:r.message, timer:1400, showConfirmButton:false});
+        if (hasSwal()) Swal.fire({icon:'success', title:'Blocked', text:r.message, timer:1400, showConfirmButton:false});
         await Promise.all([loadDevices(), loadLogs()]);
       } catch(e) {
-        Swal.fire({icon:'error', title:'Error', text:e.message});
+        if (hasSwal()) Swal.fire({icon:'error', title:'Error', text:e.message});
+        else alert('Error: ' + e.message);
       }
+    };
+  });
+
+  document.querySelectorAll('.btn-set').forEach(btn=>{
+    btn.onclick = () => {
+      const mac = btn.dataset.mac;
+      const sel = document.getElementById('sel-device');
+      if (sel) sel.value = mac;
+      document.getElementById('minutesAllowed')?.focus();
+      window.scrollTo({top:0,behavior:'smooth'});
     };
   });
 }
