@@ -301,16 +301,52 @@ if (session_status() === PHP_SESSION_NONE) session_start();
     return rows.map(r=>`<tr class=\"${rowActionClass(r.action)}\"><td>${esc(r.time)}</td><td>${esc(r.device_name)}</td><td>${esc(r.device_ip)}</td><td>${esc(r.resource)}</td><td>${esc(r.action ?? '')}</td></tr>`).join('');
   }
 
-  async function loadRecent(){
+  function rowKey(r){
+    return [r.time,r.device_ip,r.device_name,r.resource,r.action].map(v=>String(v??'')).join('|');
+  }
+
+  function mergeRows(existing, incoming, limit=200){
+    const seen = new Set();
+    const merged = [];
+    for (const r of (incoming || [])) {
+      const k = rowKey(r);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      merged.push(r);
+    }
+    for (const r of (existing || [])) {
+      const k = rowKey(r);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      merged.push(r);
+    }
+    return merged.slice(0, limit);
+  }
+
+  let recentLoadedOnce = false;
+  let recentInFlight = false;
+  async function loadRecent(opts={showLoading:true}){
+    if (recentInFlight) return;
+    recentInFlight = true;
     const tb=document.querySelector('#tbl-ra tbody');
-    tb.innerHTML='<tr><td colspan="5" class="table-empty">Loading…</td></tr>';
+    if (opts.showLoading && !recentLoadedOnce) {
+      tb.innerHTML='<tr><td colspan="5" class="table-empty">Loading…</td></tr>';
+    }
     const body={device:document.getElementById('ra-device').value||'',action:document.getElementById('ra-action').value||'',since:document.getElementById('ra-since').value||'',until:document.getElementById('ra-until').value||'',limit:200};
     try{
       const j=await getJSON(RECENT_URL,body);
       if (j && j.ok === false) throw new Error(j.message || 'API error');
-      recentRows=j.rows||[];
+      const merged = mergeRows(recentRows, j.rows || [], 200);
+      recentRows = merged;
       tb.innerHTML=renderRows(recentRows);
-    }catch(e){tb.innerHTML=`<tr><td colspan="5" class="table-empty">Error loading data: ${esc(e.message)}</td></tr>`;}
+      recentLoadedOnce = true;
+    }catch(e){
+      if (!recentLoadedOnce) {
+        tb.innerHTML=`<tr><td colspan="5" class="table-empty">Error loading data: ${esc(e.message)}</td></tr>`;
+      }
+    } finally {
+      recentInFlight = false;
+    }
   }
 
   function renderTopBlocked(rows){
@@ -383,16 +419,16 @@ if (session_status() === PHP_SESSION_NONE) session_start();
   function ts(){const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'_'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds());}
   document.getElementById('btn-dl-csv')?.addEventListener('click',()=>{if(!recentRows.length){alert('No data to download.');return;}const csv=rowsToCSV(recentRows);downloadBlob('recent_activity_'+ts()+'.csv','text/csv;charset=utf-8',csv);});
 
-  document.getElementById('ra-apply')?.addEventListener('click',loadRecent);
-  document.getElementById('do-refresh')?.addEventListener('click',loadRecent);
+  document.getElementById('ra-apply')?.addEventListener('click',()=>loadRecent({showLoading:true}));
+  document.getElementById('do-refresh')?.addEventListener('click',()=>loadRecent({showLoading:true}));
 
   document.getElementById('tb-apply')?.addEventListener('click',loadTopBlocked);
   document.getElementById('tb-refresh')?.addEventListener('click',loadTopBlocked);
 
   (async()=>{
-    await loadRecent();
+    await loadRecent({showLoading:true});
     await loadTopBlocked();
-    setInterval(loadRecent,15000);
+    setInterval(()=>loadRecent({showLoading:false}),15000);
   })();
   </script>
 </body>
