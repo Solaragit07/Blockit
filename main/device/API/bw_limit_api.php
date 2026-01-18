@@ -145,10 +145,10 @@ function parse_rate_kbps_pair(string $s): array {
 }
 
 function ros_queue_snapshot($ros){
-  // Use a *bare* word 'stats' (not '=stats=') so RouterOS returns live counters.
-  // Also ask only for the fields we need (optional).
+  // Request live counters for queues.
+  // With this RouterOS client wrapper, the most reliable way is passing a raw word '=stats='.
   $rows = $ros->talk('/queue/simple/print', [
-    'stats',
+    '=stats=' => '',
     '.proplist' => 'name,max-limit,priority,rate,bytes'
   ]);
 
@@ -239,12 +239,11 @@ switch ($action){
       $qq = $q[$name] ?? [];
       $out[] = [
         'mac'=>$d['mac'], 'ip'=>$d['ip'], 'name'=>$d['name'],
-        'has_queue'=> isset($q[$name]) ? true : false,
         'max_down_kbps'=>$qq['max_down_kbps']??0,
         'max_up_kbps'=>$qq['max_up_kbps']??0,
         'is_priority_device'=>isset($qq['priority']) ? (($qq['priority']??8) <= 2) : false,
-        'rx_rate_kbps'=>$qq['rx_rate_kbps']??0,
-        'tx_rate_kbps'=>$qq['tx_rate_kbps']??0,
+        'rx_rate_kbps'=>array_key_exists('rx_rate_kbps',$qq) ? ($qq['rx_rate_kbps'] ?? 0) : null,
+        'tx_rate_kbps'=>array_key_exists('tx_rate_kbps',$qq) ? ($qq['tx_rate_kbps'] ?? 0) : null,
       ];
     }
     ok(['devices'=>$out]);
