@@ -28,11 +28,58 @@ function client_ip(): string {
 
 function normalize_domain(string $host): string {
     $host = strtolower(trim($host));
+
+    // If it's a URL, extract host
+    if (strpos($host, '://') !== false) {
+        $parsed = parse_url($host, PHP_URL_HOST);
+        if (is_string($parsed) && $parsed !== '') {
+            $host = $parsed;
+        }
+    } elseif (strpos($host, '/') !== false) {
+        // Might be host/path without scheme
+        $parsed = parse_url('http://' . $host, PHP_URL_HOST);
+        if (is_string($parsed) && $parsed !== '') {
+            $host = $parsed;
+        }
+    }
+
     // strip port
     $host = preg_replace('/:\\d+$/', '', $host);
     // allow only hostname-ish chars
     $host = preg_replace('/[^a-z0-9.\-]/', '', $host);
     return $host;
+}
+
+function extract_blocked_domain_from_request(): string {
+    // Some redirect methods include the original URL/domain as a query param.
+    // Handle common keys used by MikroTik/Hotspot/Walled-Garden style redirects.
+    $keys = ['domain', 'host', 'site', 'dst', 'dsturl', 'url', 'target', 'redirect', 'u'];
+    foreach ($keys as $k) {
+        if (!isset($_GET[$k])) continue;
+        $v = (string)$_GET[$k];
+        if ($v === '') continue;
+        // URL decode (sometimes double-encoded)
+        $v1 = urldecode($v);
+        $v2 = urldecode($v1);
+
+        $cand = normalize_domain($v2);
+        if ($cand !== '' && strpos($cand, '.') !== false) {
+            return $cand;
+        }
+
+        $cand = normalize_domain($v1);
+        if ($cand !== '' && strpos($cand, '.') !== false) {
+            return $cand;
+        }
+
+        $cand = normalize_domain($v);
+        if ($cand !== '' && strpos($cand, '.') !== false) {
+            return $cand;
+        }
+    }
+
+    // Fallback to Host header (DNS redirect style)
+    return normalize_domain((string)($_SERVER['HTTP_HOST'] ?? ''));
 }
 
 function safe_user_agent(): string {
@@ -43,7 +90,7 @@ function safe_user_agent(): string {
 }
 
 // Get the originally requested domain
-$requestedDomain = normalize_domain((string)($_SERVER['HTTP_HOST'] ?? ''));
+$requestedDomain = extract_blocked_domain_from_request();
 $requestedURL = $_SERVER['REQUEST_URI'] ?? '';
 $fullURL = $requestedDomain . $requestedURL;
 

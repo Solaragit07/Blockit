@@ -188,8 +188,8 @@ $orderBy = ($sort === 'last') ? 'lastAttempt DESC' : 'attempts DESC';
 
 $deviceSelect = $deviceNameCol ? "COALESCE(d.`$deviceNameCol`, '')" : "''";
 $deviceLabel = $deviceNameCol
-    ? "COALESCE(NULLIF(d.`$deviceNameCol`, ''), 'Unknown Device')"
-    : "'Unknown Device'";
+    ? "(CASE\n            WHEN d.`$deviceNameCol` IS NOT NULL AND d.`$deviceNameCol` <> '' THEN d.`$deviceNameCol`\n            WHEN l.`device_id` IS NOT NULL AND l.`device_id` <> 0 THEN CONCAT('Device #', l.`device_id`)\n            ELSE 'Unknown Device'\n        END)"
+    : "(CASE\n            WHEN l.`device_id` IS NOT NULL AND l.`device_id` <> 0 THEN CONCAT('Device #', l.`device_id`)\n            ELSE 'Unknown Device'\n        END)";
 
 $deviceJoin = $deviceHasIpCol
     ? "LEFT JOIN `device` d ON (l.`device_id` = d.`id` OR ((l.`device_id` IS NULL OR l.`device_id`=0) AND l.`ip_address` IS NOT NULL AND l.`ip_address` <> '' AND d.`ip_address` = l.`ip_address`))"
@@ -273,6 +273,7 @@ while ($row = $res->fetch_assoc()) {
         'site' => $displaySite,
         'siteRaw' => $rawSite,
         'device' => (string)($row['device'] ?? ''),
+        'ip' => (string)($row['ip'] ?? ''),
         'attempts' => (int)($row['attempts'] ?? 0),
         'lastAttempt' => (string)($row['lastAttempt'] ?? ''),
         'deviceName' => (string)($row['deviceName'] ?? ''),
