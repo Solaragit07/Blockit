@@ -161,31 +161,64 @@
 <script>
   // Open modals from menu
   function changePassword() {
-    $('#changePasswordModal').modal('show');
+    var jq = window.jQuery;
+    if (jq && jq.fn && typeof jq.fn.modal === 'function') {
+      jq('#changePasswordModal').modal('show');
+      return;
+    }
+    alert('UI is still loading (missing jQuery/Bootstrap). Please refresh and try again.');
   }
 
   function openEmailNotificationsModal() {
-    $('#emailNotificationsModal').modal('show');
+    var jq = window.jQuery;
+    var contentEl = document.getElementById('emailNotificationsContent');
 
-    // Load content via AJAX
-    $.ajax({
-      url: '../email/modal_content.php',
-      type: 'GET',
-      success: function (response) {
-        $('#emailNotificationsContent').html(response);
-      },
-      error: function () {
-        $('#emailNotificationsContent').html(
-          '<div class="alert alert-warning mb-0">' +
-            '<i class="fas fa-exclamation-triangle" aria-hidden="true"></i> ' +
-            '<strong>Unable to load settings.</strong><br>' +
-            '<a href="../email/" class="btn btn-primary btn-sm mt-2">' +
-              '<i class="fas fa-external-link-alt" aria-hidden="true"></i> Open in New Page' +
-            '</a>' +
-          '</div>'
-        );
-      }
-    });
+    if (jq && jq.fn && typeof jq.fn.modal === 'function') {
+      jq('#emailNotificationsModal').modal('show');
+    } else {
+      // Don't hard-fail if jQuery isn't available; user can still open the full page.
+      alert('Email settings modal needs the UI libraries to finish loading. If this keeps happening, open the full page instead.');
+      return;
+    }
+
+    // Load content (prefer jQuery when present; fallback to fetch)
+    if (jq && typeof jq.ajax === 'function') {
+      jq.ajax({
+        url: '../email/modal_content.php',
+        type: 'GET',
+        success: function (response) {
+          jq('#emailNotificationsContent').html(response);
+        },
+        error: function () {
+          jq('#emailNotificationsContent').html(
+            '<div class="alert alert-warning mb-0">' +
+              '<i class="fas fa-exclamation-triangle" aria-hidden="true"></i> ' +
+              '<strong>Unable to load settings.</strong><br>' +
+              '<a href="../email/" class="btn btn-primary btn-sm mt-2">' +
+                '<i class="fas fa-external-link-alt" aria-hidden="true"></i> Open in New Page' +
+              '</a>' +
+            '</div>'
+          );
+        }
+      });
+      return;
+    }
+
+    fetch('../email/modal_content.php', { credentials: 'same-origin' })
+      .then(function(r){ return r.text(); })
+      .then(function(html){ if (contentEl) contentEl.innerHTML = html; })
+      .catch(function(){
+        if (contentEl) {
+          contentEl.innerHTML =
+            '<div class="alert alert-warning mb-0">' +
+              '<i class="fas fa-exclamation-triangle" aria-hidden="true"></i> ' +
+              '<strong>Unable to load settings.</strong><br>' +
+              '<a href="../email/" class="btn btn-primary btn-sm mt-2">' +
+                '<i class="fas fa-external-link-alt" aria-hidden="true"></i> Open in New Page' +
+              '</a>' +
+            '</div>';
+        }
+      });
   }
 
   // Password validation (simple client-side checks)
@@ -207,7 +240,9 @@
   });
 
   // Initialize Bootstrap tooltips (for title on logout icon)
-  $(function () {
-    $('[data-toggle="tooltip"]').tooltip();
-  });
+  (function(){
+    var jq = window.jQuery;
+    if (!(jq && jq.fn && typeof jq.fn.tooltip === 'function')) return;
+    jq(function(){ jq('[data-toggle="tooltip"]').tooltip(); });
+  })();
 </script>
