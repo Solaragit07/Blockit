@@ -9,24 +9,95 @@ header('Content-Type: application/json');
 
 function jexit(array $arr): void { echo json_encode($arr); exit; }
 
-function resolve_domain_to_ip(string $host, array &$cache): string {
-    $host = trim($host);
-    if ($host === '') {
-        return $host;
+function normalize_site_host(string $value): string {
+    $value = trim($value);
+    if ($value === '') return '';
+
+    // If it's a URL, extract host
+    if (str_contains($value, '://')) {
+        $host = parse_url($value, PHP_URL_HOST);
+        if (is_string($host) && $host !== '') $value = $host;
+    } elseif (str_contains($value, '/')) {
+        // Might be host/path without scheme
+        $host = parse_url('http://' . $value, PHP_URL_HOST);
+        if (is_string($host) && $host !== '') $value = $host;
     }
-    if (filter_var($host, FILTER_VALIDATE_IP)) {
-        return $host;
+
+    // Strip port
+    $value = preg_replace('/:\d+$/', '', $value);
+    // Strip IPv6 brackets
+    $value = preg_replace('/^\[(.*)\]$/', '$1', $value);
+    // Keep only hostname-ish chars
+    $value = strtolower(preg_replace('/[^a-z0-9.\-:]/i', '', $value));
+    return $value;
+}
+
+function is_ip_literal(string $value): bool {
+    return filter_var($value, FILTER_VALIDATE_IP) !== false;
+}
+
+function load_reverse_dns_cache(string $path): array {
+    if (!is_file($path)) return [];
+    $raw = @file_get_contents($path);
+    if (!is_string($raw) || trim($raw) === '') return [];
+    $decoded = json_decode($raw, true);
+    return is_array($decoded) ? $decoded : [];
+}
+
+function save_reverse_dns_cache(string $path, array $cache): void {
+    $dir = dirname($path);
+    if (!is_dir($dir)) @mkdir($dir, 0777, true);
+
+    // Avoid unbounded growth
+    if (count($cache) > 5000) {
+        // Keep newest 2500
+        uasort($cache, fn($a, $b) => (int)($b['t'] ?? 0) <=> (int)($a['t'] ?? 0));
+        $cache = array_slice($cache, 0, 2500, true);
     }
-    if (isset($cache[$host])) {
-        return $cache[$host];
+
+    $tmp = $path . '.tmp';
+    @file_put_contents($tmp, json_encode($cache, JSON_UNESCAPED_SLASHES), LOCK_EX);
+    @rename($tmp, $path);
+}
+
+function fetch_router_dns_cache_map(string $appRoot, int $timeoutSeconds = 3): array {
+    $config_file = $appRoot . '/config/router.php';
+    $client_file = $appRoot . '/includes/routeros_client.php';
+    if (!file_exists($config_file) || !file_exists($client_file)) return [];
+
+    try {
+        $config = require $config_file;
+        require_once $client_file;
+        if (!class_exists('RouterOSClient')) return [];
+
+        $host    = $config['host']     ?? '10.10.20.10';
+        $port    = (int)($config['api_port'] ?? 8729);
+        $useTls  = (bool)($config['api_tls'] ?? true);
+        $user    = $config['user']     ?? 'api-dashboard';
+        $pass    = $config['pass']     ?? '';
+
+        @set_time_limit($timeoutSeconds + 1);
+        @ini_set('default_socket_timeout', (string)$timeoutSeconds);
+
+        $api = new RouterOSClient($host, $port, $user, $pass, $timeoutSeconds, $useTls);
+        $dnsc = $api->talk('/ip/dns/cache/print');
+        $api->close();
+
+        if (!is_array($dnsc)) return [];
+
+        $map = [];
+        foreach ($dnsc as $row) {
+            if (!is_array($row)) continue;
+            $name = strtolower((string)($row['name'] ?? ''));
+            $addr = (string)($row['address'] ?? ($row['data'] ?? ''));
+            if ($name === '' || $addr === '') continue;
+            if (!is_ip_literal($addr)) continue;
+            if (!isset($map[$addr])) $map[$addr] = $name;
+        }
+        return $map;
+    } catch (Throwable $e) {
+        return [];
     }
-    $ip = gethostbyname($host);
-    if ($ip === $host || !filter_var($ip, FILTER_VALIDATE_IP)) {
-        $cache[$host] = $host;
-        return $host;
-    }
-    $cache[$host] = $ip;
-    return $ip;
 }
 
 $APP_ROOT = dirname(__DIR__, 3);
@@ -147,13 +218,54 @@ if (!$stmt->execute()) {
 
 $res = $stmt->get_result();
 $rows = [];
-$dnsCache = [];
+
+$cachePath = $APP_ROOT . '/data/reverse_dns_cache.json';
+$cacheTtlSeconds = 60 * 60 * 24 * 7; // 7 days
+$rdnsCache = load_reverse_dns_cache($cachePath);
+$rdnsDirty = false;
+$routerDnsMap = [];
+$routerDnsLoaded = false;
+$rdnsLookups = 0;
+$rdnsLookupCap = 30; // avoid slow requests
+
 while ($row = $res->fetch_assoc()) {
-    $domain = (string)($row['site'] ?? '');
-    $resolved = resolve_domain_to_ip($domain, $dnsCache);
+    $rawSite = normalize_site_host((string)($row['site'] ?? ''));
+    $displaySite = $rawSite;
+
+    if ($rawSite !== '' && is_ip_literal($rawSite)) {
+        if (!$routerDnsLoaded) {
+            $routerDnsMap = fetch_router_dns_cache_map($APP_ROOT, 3);
+            $routerDnsLoaded = true;
+        }
+
+        if (!empty($routerDnsMap[$rawSite])) {
+            $displaySite = (string)$routerDnsMap[$rawSite];
+        } else {
+            $now = time();
+            $cached = $rdnsCache[$rawSite] ?? null;
+            $cachedHost = is_array($cached) ? (string)($cached['h'] ?? '') : '';
+            $cachedAt = is_array($cached) ? (int)($cached['t'] ?? 0) : 0;
+
+            if ($cachedHost !== '' && $cachedAt > 0 && ($now - $cachedAt) < $cacheTtlSeconds) {
+                $displaySite = $cachedHost;
+            } elseif ($rdnsLookups < $rdnsLookupCap) {
+                $rdnsLookups++;
+                $host = @gethostbyaddr($rawSite);
+                if (is_string($host) && $host !== '' && $host !== $rawSite) {
+                    $host = normalize_site_host($host);
+                    if ($host !== '' && $host !== $rawSite) {
+                        $displaySite = $host;
+                        $rdnsCache[$rawSite] = ['h' => $host, 't' => $now];
+                        $rdnsDirty = true;
+                    }
+                }
+            }
+        }
+    }
+
     $rows[] = [
-        'site' => $resolved,
-        'domain' => $domain,
+        'site' => $displaySite,
+        'siteRaw' => $rawSite,
         'device' => (string)($row['device'] ?? ''),
         'attempts' => (int)($row['attempts'] ?? 0),
         'lastAttempt' => (string)($row['lastAttempt'] ?? ''),
@@ -162,5 +274,9 @@ while ($row = $res->fetch_assoc()) {
 }
 
 $stmt->close();
+
+if ($rdnsDirty) {
+    save_reverse_dns_cache($cachePath, $rdnsCache);
+}
 
 jexit(['ok' => true, 'rows' => $rows]);

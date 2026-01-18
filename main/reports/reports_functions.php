@@ -2,6 +2,34 @@
 include_once '../../connectMySql.php';
 include_once '../../loginverification.php';
 
+function normalize_site_host(string $value): string {
+    $value = trim($value);
+    if ($value === '') return '';
+    if (str_contains($value, '://')) {
+        $host = parse_url($value, PHP_URL_HOST);
+        if (is_string($host) && $host !== '') $value = $host;
+    } elseif (str_contains($value, '/')) {
+        $host = parse_url('http://' . $value, PHP_URL_HOST);
+        if (is_string($host) && $host !== '') $value = $host;
+    }
+    $value = preg_replace('/:\d+$/', '', $value);
+    $value = preg_replace('/^\[(.*)\]$/', '$1', $value);
+    $value = strtolower(preg_replace('/[^a-z0-9.\-:]/i', '', $value));
+    return $value;
+}
+
+function resolve_site_display(string $site): string {
+    $site = normalize_site_host($site);
+    if ($site !== '' && filter_var($site, FILTER_VALIDATE_IP)) {
+        $host = @gethostbyaddr($site);
+        if (is_string($host) && $host !== '' && $host !== $site) {
+            $host = normalize_site_host($host);
+            if ($host !== '' && $host !== $site) return $host;
+        }
+    }
+    return $site;
+}
+
 function getDateCondition($dateRange, $tableAlias = 'l') {
     switch ($dateRange) {
         case 'today':
@@ -102,7 +130,7 @@ function getRecentBlockingEvents($dateCondition, $deviceCondition, $limit = 50) 
                 $events[] = [
                     'time' => $row['time'],
                     'device' => $row['device'],
-                    'blockedSite' => $row['blockedSite'],
+                    'blockedSite' => resolve_site_display((string)$row['blockedSite']),
                     'category' => $row['category']
                 ];
             }
@@ -158,6 +186,9 @@ function getTopBlockedSites($dateCondition, $deviceCondition, $limit = 20) {
         
         if ($result) {
             while ($row = $result->fetch_assoc()) {
+                if (isset($row['site'])) {
+                    $row['site'] = resolve_site_display((string)$row['site']);
+                }
                 $sites[] = $row;
             }
         }
