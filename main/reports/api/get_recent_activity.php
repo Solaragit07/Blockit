@@ -26,6 +26,9 @@ $useTls  = (bool)($config['api_tls'] ?? true);
 $user    = $config['user']     ?? 'api-dashboard';
 $pass    = $config['pass']     ?? '';
 $timeout = (int)($config['timeout'] ?? 8);
+// Hard stop for slow RouterOS calls
+@set_time_limit($timeout + 3);
+@ini_set('default_socket_timeout', (string)$timeout);
 
 // === Inputs from dashboard (JSON POST preferred; fallback to form POST) ===
 $rawBody = file_get_contents('php://input');
@@ -36,6 +39,7 @@ if (is_string($rawBody) && trim($rawBody) !== '') {
 }
 
 $device = trim((string)($jsonBody['device'] ?? ($_POST['device'] ?? '')));
+$action = trim((string)($jsonBody['action'] ?? ($_POST['action'] ?? '')));
 $since  = trim((string)($jsonBody['since']  ?? ($_POST['since']  ?? ''))); // "YYYY-MM-DDTHH:MM"
 $until  = trim((string)($jsonBody['until']  ?? ($_POST['until']  ?? '')));
 $limit  = (int)($jsonBody['limit'] ?? ($_POST['limit'] ?? 200));
@@ -106,6 +110,17 @@ function ts_pass($since,$until,$time_string){
 
 function includes_ci($haystack, $needle){
   return $needle === '' || stripos($haystack, $needle) !== false;
+}
+
+function detect_action($topics, $message, $extra) {
+  $blob = strtolower(trim(($topics ?? '') . ' ' . ($message ?? '') . ' ' . ($extra ?? '')));
+  if (preg_match('/\b(action=drop|action=reject|drop\b|reject\b|blocked\b|deny\b)\b/', $blob)) {
+    return 'Blocked';
+  }
+  if (preg_match('/\b(action=accept|accept\b|allowed\b|permit\b)\b/', $blob)) {
+    return 'Allowed';
+  }
+  return 'Allowed';
 }
 
 // Only keep log lines that are likely device traffic (not wireless/info, not VPN handshakes, etc.)
@@ -242,6 +257,10 @@ try {
     // If still blank and you prefer to show the public IP, uncomment:
     // if ($resource === '' && $dst_ip && !is_private_ip($dst_ip)) $resource = $dst_ip;
 
+    // Action detection + filter (UI)
+    $row_action = detect_action($topics, $message, $extra);
+    if ($action !== '' && strcasecmp($row_action, $action) !== 0) continue;
+
     // Device filter (UI)
     $hay = $device_name.' '.$device_ip.' '.$resource;
     if ($device !== '' && !includes_ci($hay, $device)) continue;
@@ -251,6 +270,7 @@ try {
       'device_name' => $device_name !== '' ? $device_name : $device_ip, // fallback to IP if unnamed
       'device_ip'   => $device_ip,
       'resource'    => $resource, // hostname/app only (blank if unknown)
+      'action'      => $row_action,
     ];
   }
 

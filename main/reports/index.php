@@ -277,17 +277,28 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
   const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-  async function getJSON(url, body=null){
-    const opt = body ? {method:'POST',headers:{'Content-Type':'application/json','X-API-Key':API_KEY},body:JSON.stringify(body)} : {headers:{'X-API-Key':API_KEY}};
-    const r = await fetch(url,opt);
-    if(!r.ok){throw new Error('HTTP '+r.status);}
-    return r.json();
+  async function getJSON(url, body=null, timeoutMs=12000){
+    const controller = new AbortController();
+    const t = setTimeout(()=>controller.abort(), timeoutMs);
+    const opt = body
+      ? {method:'POST',headers:{'Content-Type':'application/json','X-API-Key':API_KEY},body:JSON.stringify(body),signal:controller.signal}
+      : {headers:{'X-API-Key':API_KEY},signal:controller.signal};
+    try{
+      const r = await fetch(url,opt);
+      if(!r.ok){throw new Error('HTTP '+r.status);}
+      return await r.json();
+    } catch (e){
+      if (e.name === 'AbortError') throw new Error('Request timed out');
+      throw e;
+    } finally {
+      clearTimeout(t);
+    }
   }
 
   function rowActionClass(a){return String(a||'').toLowerCase()==='blocked'?'row-bad':'';}
   function renderRows(rows){
     if(!rows||!rows.length)return'<tr><td colspan="5" class="table-empty">No recent activity</td></tr>';
-    return rows.map(r=>`<tr class=\"${rowActionClass(r.action)}\"><td>${esc(r.time)}</td><td>${esc(r.device_name)}</td><td>${esc(r.device_ip)}</td><td>${esc(r.resource)}</td><td>${esc(r.action)}</td></tr>`).join('');
+    return rows.map(r=>`<tr class=\"${rowActionClass(r.action)}\"><td>${esc(r.time)}</td><td>${esc(r.device_name)}</td><td>${esc(r.device_ip)}</td><td>${esc(r.resource)}</td><td>${esc(r.action ?? '')}</td></tr>`).join('');
   }
 
   async function loadRecent(){
@@ -296,6 +307,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
     const body={device:document.getElementById('ra-device').value||'',action:document.getElementById('ra-action').value||'',since:document.getElementById('ra-since').value||'',until:document.getElementById('ra-until').value||'',limit:200};
     try{
       const j=await getJSON(RECENT_URL,body);
+      if (j && j.ok === false) throw new Error(j.message || 'API error');
       recentRows=j.rows||[];
       tb.innerHTML=renderRows(recentRows);
     }catch(e){tb.innerHTML=`<tr><td colspan="5" class="table-empty">Error loading data: ${esc(e.message)}</td></tr>`;}
@@ -318,6 +330,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
     };
     try{
       const j=await getJSON(TOP_BLOCKED_URL,body);
+      if (j && j.ok === false) throw new Error(j.message || 'API error');
       tb.innerHTML=renderTopBlocked(j.rows||[]);
     }catch(e){
       tb.innerHTML=`<tr><td colspan="3" class="table-empty">Error loading data: ${esc(e.message)}</td></tr>`;
@@ -367,7 +380,6 @@ if (session_status() === PHP_SESSION_NONE) session_start();
     a.remove();
     URL.revokeObjectURL(u);
   }
-  function downloadBlob(name,mime,content){const b=new Blob([content],{type:mime});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(u);}
   function ts(){const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'_'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds());}
   document.getElementById('btn-dl-csv')?.addEventListener('click',()=>{if(!recentRows.length){alert('No data to download.');return;}const csv=rowsToCSV(recentRows);downloadBlob('recent_activity_'+ts()+'.csv','text/csv;charset=utf-8',csv);});
 
