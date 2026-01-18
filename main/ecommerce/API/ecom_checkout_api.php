@@ -8,6 +8,13 @@
 declare(strict_types=1);
 header('Content-Type: application/json');
 
+// PHP < 8 compatibility
+if (!function_exists('str_starts_with')) {
+  function str_starts_with(string $haystack, string $needle): bool {
+    return $needle === '' || strpos($haystack, $needle) === 0;
+  }
+}
+
 // ---------- Load config + client ----------
 $ROOT = dirname(__DIR__, 3); // .../public_html
 $login = $ROOT . '/loginverification.php';
@@ -224,12 +231,13 @@ try {
     }
 
     $p = $PLATFORMS[$platform];
+    $type = (string)($p['type'] ?? 'subdomain');
     $api = ros();
 
     if ($enable) {
       $added = [];
 
-      if ($p['type'] === 'root') {
+      if ($type === 'root') {
         $host = sanitize_host((string)$p['root']);
         add_dns_block($api, $host, rule_comment($platform, $host));
         $added[] = $host;
