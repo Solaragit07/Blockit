@@ -41,6 +41,7 @@ $API_KEY = $config['api_key'] ?? '';
     th,td{ padding:8px; border:1px solid #cfe7ef; font-size:13px }
     th{ background:#f8f9fa; font-weight:700; color:var(--ink) }
     .rate{ font-variant-numeric:tabular-nums }
+    #realtime{ white-space:pre; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace }
     /* Back to Top Button */
 #backToTop {
   position: fixed;
@@ -236,13 +237,9 @@ async function loadDevices(){
 
     const limits = `${d.max_down_kbps?d.max_down_kbps+' kbps':'∞'} / ${d.max_up_kbps?d.max_up_kbps+' kbps':'∞'}`;
     const priority = d.is_priority_device? '<span class="badge badge-success">Priority</span>' : '<span class="badge">Normal</span>';
-    const downLimit = Number(d.max_down_kbps) || 0;
-    const upLimit = Number(d.max_up_kbps) || 0;
     const rxRate = Number(d.rx_rate_kbps) || 0;
     const txRate = Number(d.tx_rate_kbps) || 0;
-    const remDown = downLimit ? Math.max(downLimit - rxRate, 0) : null;
-    const remUp = upLimit ? Math.max(upLimit - txRate, 0) : null;
-    const now = `<span class="rate">${remDown===null ? '∞' : remDown+' kbps'} / ${remUp===null ? '∞' : remUp+' kbps'}</span>`;
+    const now = `<span class="rate">${rxRate} kbps / ${txRate} kbps</span>`;
 
     const tr=document.createElement('tr');
     tr.innerHTML = `
