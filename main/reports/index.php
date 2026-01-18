@@ -444,14 +444,21 @@ if (session_status() === PHP_SESSION_NONE) session_start();
     }
   }
 
+  let topBlockedLoadedOnce = false;
+  let topBlockedInFlight = false;
+
   function renderTopBlocked(rows){
     if(!rows||!rows.length)return'<tr><td colspan="5" class="table-empty">No blocked website attempts found</td></tr>';
     return rows.map(r=>`<tr class="row-bad"><td>${esc(r.site)}</td><td>${esc(r.device || '')}</td><td>${esc(r.ip || '')}</td><td>${esc(r.attempts)}</td><td>${esc(r.lastAttempt)}</td></tr>`).join('');
   }
 
-  async function loadTopBlocked(){
+  async function loadTopBlocked(opts={showLoading:true}){
+    if (topBlockedInFlight) return;
+    topBlockedInFlight = true;
     const tb=document.querySelector('#tbl-tb tbody');
-    tb.innerHTML='<tr><td colspan="5" class="table-empty">Loading…</td></tr>';
+    if (opts.showLoading && !topBlockedLoadedOnce) {
+      tb.innerHTML='<tr><td colspan="5" class="table-empty">Loading…</td></tr>';
+    }
     const body={
       device:document.getElementById('tb-device').value||'',
       sort:document.getElementById('tb-sort').value||'attempts',
@@ -463,8 +470,13 @@ if (session_status() === PHP_SESSION_NONE) session_start();
       const j=await getJSON(TOP_BLOCKED_URL,body);
       if (j && j.ok === false) throw new Error(j.message || 'API error');
       tb.innerHTML=renderTopBlocked(j.rows||[]);
+      topBlockedLoadedOnce = true;
     }catch(e){
-      tb.innerHTML=`<tr><td colspan="5" class="table-empty">Error loading data: ${esc(e.message)}</td></tr>`;
+      if (!topBlockedLoadedOnce) {
+        tb.innerHTML=`<tr><td colspan="5" class="table-empty">Error loading data: ${esc(e.message)}</td></tr>`;
+      }
+    } finally {
+      topBlockedInFlight = false;
     }
   }
 
@@ -517,23 +529,29 @@ if (session_status() === PHP_SESSION_NONE) session_start();
   document.getElementById('ra-apply')?.addEventListener('click',()=>loadRecent({showLoading:true}));
   document.getElementById('do-refresh')?.addEventListener('click',()=>loadRecent({showLoading:true}));
 
-  document.getElementById('tb-apply')?.addEventListener('click',loadTopBlocked);
-  document.getElementById('tb-refresh')?.addEventListener('click',loadTopBlocked);
+  document.getElementById('tb-apply')?.addEventListener('click',()=>loadTopBlocked({showLoading:true}));
+  document.getElementById('tb-refresh')?.addEventListener('click',()=>loadTopBlocked({showLoading:true}));
 
-  document.getElementById('rb-apply')?.addEventListener('click',loadRecentBlocked);
-  document.getElementById('rb-refresh')?.addEventListener('click',loadRecentBlocked);
+  document.getElementById('rb-apply')?.addEventListener('click',()=>loadRecentBlocked({showLoading:true}));
+  document.getElementById('rb-refresh')?.addEventListener('click',()=>loadRecentBlocked({showLoading:true}));
 
-  document.getElementById('bd-apply')?.addEventListener('click',loadBlockedByDevice);
-  document.getElementById('bd-refresh')?.addEventListener('click',loadBlockedByDevice);
+  document.getElementById('bd-apply')?.addEventListener('click',()=>loadBlockedByDevice({showLoading:true}));
+  document.getElementById('bd-refresh')?.addEventListener('click',()=>loadBlockedByDevice({showLoading:true}));
 
   function renderRecentBlocked(rows){
     if(!rows||!rows.length)return'<tr><td colspan="5" class="table-empty">No blocked attempts yet</td></tr>';
     return rows.map(r=>`<tr class="row-bad"><td>${esc(r.time)}</td><td>${esc(r.device||'')}</td><td>${esc(r.ip||'')}</td><td>${esc(r.site||'')}</td><td>${esc(r.reason||'')}</td></tr>`).join('');
   }
 
-  async function loadRecentBlocked(){
+  let recentBlockedLoadedOnce = false;
+  let recentBlockedInFlight = false;
+  async function loadRecentBlocked(opts={showLoading:true}){
+    if (recentBlockedInFlight) return;
+    recentBlockedInFlight = true;
     const tb=document.querySelector('#tbl-rb tbody');
-    tb.innerHTML='<tr><td colspan="5" class="table-empty">Loading…</td></tr>';
+    if (opts.showLoading && !recentBlockedLoadedOnce) {
+      tb.innerHTML='<tr><td colspan="5" class="table-empty">Loading…</td></tr>';
+    }
     const body={
       device:document.getElementById('rb-device').value||'',
       since:document.getElementById('rb-since').value||'',
@@ -544,8 +562,13 @@ if (session_status() === PHP_SESSION_NONE) session_start();
       const j=await getJSON(RECENT_BLOCKED_URL,body);
       if (j && j.ok === false) throw new Error(j.message || 'API error');
       tb.innerHTML=renderRecentBlocked(j.rows||[]);
+      recentBlockedLoadedOnce = true;
     }catch(e){
-      tb.innerHTML=`<tr><td colspan="5" class="table-empty">Error loading data: ${esc(e.message)}</td></tr>`;
+      if (!recentBlockedLoadedOnce) {
+        tb.innerHTML=`<tr><td colspan="5" class="table-empty">Error loading data: ${esc(e.message)}</td></tr>`;
+      }
+    } finally {
+      recentBlockedInFlight = false;
     }
   }
 
@@ -554,9 +577,15 @@ if (session_status() === PHP_SESSION_NONE) session_start();
     return rows.map(r=>`<tr class="row-bad"><td>${esc(r.device||'')}</td><td>${esc(r.ip||'')}</td><td>${esc(r.attempts)}</td><td>${esc(r.lastAttempt||'')}</td></tr>`).join('');
   }
 
-  async function loadBlockedByDevice(){
+  let blockedByDeviceLoadedOnce = false;
+  let blockedByDeviceInFlight = false;
+  async function loadBlockedByDevice(opts={showLoading:true}){
+    if (blockedByDeviceInFlight) return;
+    blockedByDeviceInFlight = true;
     const tb=document.querySelector('#tbl-bd tbody');
-    tb.innerHTML='<tr><td colspan="4" class="table-empty">Loading…</td></tr>';
+    if (opts.showLoading && !blockedByDeviceLoadedOnce) {
+      tb.innerHTML='<tr><td colspan="4" class="table-empty">Loading…</td></tr>';
+    }
     const body={
       device:document.getElementById('bd-device').value||'',
       sort:document.getElementById('bd-sort').value||'attempts',
@@ -568,19 +597,25 @@ if (session_status() === PHP_SESSION_NONE) session_start();
       const j=await getJSON(BLOCKED_BY_DEVICE_URL,body);
       if (j && j.ok === false) throw new Error(j.message || 'API error');
       tb.innerHTML=renderBlockedByDevice(j.rows||[]);
+      blockedByDeviceLoadedOnce = true;
     }catch(e){
-      tb.innerHTML=`<tr><td colspan="4" class="table-empty">Error loading data: ${esc(e.message)}</td></tr>`;
+      if (!blockedByDeviceLoadedOnce) {
+        tb.innerHTML=`<tr><td colspan="4" class="table-empty">Error loading data: ${esc(e.message)}</td></tr>`;
+      }
+    } finally {
+      blockedByDeviceInFlight = false;
     }
   }
 
   (async()=>{
     await loadRecent({showLoading:true});
-    await loadTopBlocked();
-    await loadRecentBlocked();
-    await loadBlockedByDevice();
+    await loadTopBlocked({showLoading:true});
+    await loadRecentBlocked({showLoading:true});
+    await loadBlockedByDevice({showLoading:true});
     setInterval(()=>loadRecent({showLoading:false}),15000);
-    setInterval(()=>loadRecentBlocked(),15000);
-    setInterval(()=>loadBlockedByDevice(),15000);
+    setInterval(()=>loadTopBlocked({showLoading:false}),15000);
+    setInterval(()=>loadRecentBlocked({showLoading:false}),15000);
+    setInterval(()=>loadBlockedByDevice({showLoading:false}),15000);
   })();
   </script>
 </body>
