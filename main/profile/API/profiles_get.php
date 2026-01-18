@@ -1,18 +1,36 @@
 <?php
 // /public_html/main/blocklist/api/profiles_get.php
-ini_set('display_errors',1); ini_set('display_startup_errors',1); error_reporting(E_ALL);
+ini_set('display_errors',0); ini_set('display_startup_errors',0); error_reporting(E_ALL);
 header('Content-Type: application/json; charset=utf-8');
 
 function jexit($x,$c=200){ http_response_code($c); echo json_encode($x, JSON_UNESCAPED_SLASHES); exit; }
 
+function resolve_data_dir(string $appRoot): array {
+	$candidates = [];
+	$env = getenv('BLOCKIT_DATA_DIR');
+	if ($env) $candidates[] = rtrim($env, '/\\');
+	$candidates[] = $appRoot . '/data';
+	$candidates[] = rtrim(sys_get_temp_dir(), '/\\') . '/blockit';
+
+	foreach ($candidates as $dir) {
+		if (!is_dir($dir)) @mkdir($dir, 0775, true);
+		if (is_dir($dir) && is_writable($dir)) {
+			return [$dir, $dir . '/profiles.json'];
+		}
+	}
+	return [null, null];
+}
+
 $APP_ROOT = dirname(__DIR__, 3);
 $cfg_path = $APP_ROOT.'/config/router.php';
 $lv_path  = $APP_ROOT.'/loginverification.php';
-$data_dir = $APP_ROOT.'/data';
-$file     = $data_dir.'/profiles.json';
-
-if (!is_dir($data_dir)) @mkdir($data_dir,0775,true);
-if (!file_exists($file)) file_put_contents($file,'[]');
+[$data_dir, $file] = resolve_data_dir($APP_ROOT);
+if (!$data_dir || !$file) jexit(['ok'=>false,'message'=>'Profiles storage not writable'],500);
+if (!file_exists($file)) {
+	if (@file_put_contents($file,'[]', LOCK_EX) === false) {
+		jexit(['ok'=>false,'message'=>'Unable to initialize profiles storage'],500);
+	}
+}
 
 $config = file_exists($cfg_path) ? require $cfg_path : [];
 

@@ -69,7 +69,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
     /* Tables */
     .table{width:100%; border-collapse:collapse}
     .table th,.table td{padding:8px 10px; border-bottom:1px solid #e5f4f8; font-size:14px; text-align:left}
-    .table th{background:rgba(13,202,240,.15); color:var(--ink); position:sticky; top:0}
+    .table th{background:#e9f7ff; color:var(--ink); position:sticky; top:0}
     .scroll{max-height:48vh; overflow:auto}
     .controls{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
     .input{padding:8px 10px; border:1px solid #cfe7ef; border-radius:10px; background:#fff; font-size:14px; min-width:160px}
@@ -84,7 +84,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
     @media(min-width:900px){ .mk-two{grid-template-columns:1fr 1fr} }
     .mk-table{width:100%;border-collapse:collapse}
     .mk-table th,.mk-table td{padding:8px 10px;border-bottom:1px solid #e5f4f8;font-size:14px;text-align:left}
-    .mk-table th{background:rgba(13,202,240,.15);color:#063c4a;position:sticky;top:0}
+    .mk-table th{background:#e9f7ff;color:#063c4a;position:sticky;top:0}
     .mk-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
     .mk-input{padding:8px 10px;border:1px solid #cfe7ef;border-radius:10px;font-size:14px;background:#fff}
     .mk-btn{padding:8px 10px;border:none;border-radius:10px;background:#087990;color:#fff;font-weight:700;cursor:pointer}
@@ -119,7 +119,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
     .badge-blocked{ background:#fbeaea; color:#a30000; border:1px solid #f5c2c2 }
     table{ width:100%; border-collapse:collapse }
     th,td{ padding:8px; border:1px solid #cfe7ef; font-size:13px }
-    th{ background:#f8f9fa; font-weight:700; color:var(--ink) }
+    th{ background:#e9f7ff; font-weight:700; color:var(--ink) }
     /* Back to Top Button */
 #backToTop {
   position: fixed;
