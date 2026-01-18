@@ -24,5 +24,5 @@ return [
     'timeout'  => (int)$env('BLOCKIT_ROUTER_TIMEOUT', 8),
 
     // App/API auth
-    'api_key'  => (string)$env('BLOCKIT_API_KEY', ''),
+    'api_key'  => (string)$env('BLOCKIT_API_KEY', 'your_secret_key_here'),
 ];
