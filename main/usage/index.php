@@ -165,7 +165,9 @@ async function loadDevices(){
 
   const sel=document.getElementById('sel-device');
   const tbody=document.querySelector('#tbl-devices tbody');
-  sel.innerHTML='<option value="">-- Choose Device --</option>'; tbody.innerHTML='';
+  const prevValue = sel.value;
+  sel.innerHTML='<option value="">-- Choose Device --</option>';
+  tbody.innerHTML='';
 
   list.forEach(d=>{
     const opt=document.createElement('option');
@@ -182,6 +184,11 @@ async function loadDevices(){
         : `<em class="help">-</em>`}</td>`;
     tbody.appendChild(tr);
   });
+
+  // restore previous selection if still present
+  if (prevValue && Array.from(sel.options).some(o => o.value === prevValue)) {
+    sel.value = prevValue;
+  }
 
   document.querySelectorAll('.btn-unblock').forEach(btn=>{
     btn.onclick = async () => {
