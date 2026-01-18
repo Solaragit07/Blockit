@@ -46,7 +46,8 @@ $API_KEY = $config['api_key'] ?? '';
     th{ background:#f8f9fa; font-weight:700; color:var(--ink) }
     .logs{ background:#fff; border:1px solid #cfe7ef; border-radius:10px; padding:10px; min-height:220px; max-height:340px; overflow:auto; font-family:ui-monospace,Consolas,monospace; font-size:12px; white-space:pre-wrap }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="/js/sweetalert2.all.js"></script>
 </head>
 <body id="page-top">
