@@ -1,6 +1,7 @@
 <?php
-// /main/usage/bw_limit.php  — NO DATABASE
-$APP_ROOT = dirname(__DIR__, 2);
+// /main/device/index.php — Bandwidth Limit per Device (RouterOS)
+// NOTE: this page lives under /main/device, so project root is 3 levels up.
+$APP_ROOT = dirname(__DIR__, 3);
 require_once $APP_ROOT . '/loginverification.php';
 if (function_exists('require_login')) { require_login(); }
 if (session_status() === PHP_SESSION_NONE) session_start();
@@ -223,38 +224,117 @@ async function loadDevices(){
       <td>${priority}</td>
       <td>${now}</td>
       <td>
-        <button class="btn btn-ghost btn-edit" data-mac="${d.mac}"><i class="fa-solid fa-pen"></i></button>
-        <button class="btn btn-danger btn-clear" data-mac="${d.mac}"><i class="fa-solid fa-broom"></i></button>
+        <button type="button" class="btn btn-ghost btn-edit" data-mac="${d.mac}" title="Edit limits"><i class="fa-solid fa-pen"></i></button>
+        <button type="button" class="btn btn-danger btn-clear" data-mac="${d.mac}" title="Clear limits"><i class="fa-solid fa-broom"></i></button>
       </td>`;
     tbody.appendChild(tr);
   });
-
-  document.querySelectorAll('.btn-edit').forEach(btn=>{
-    btn.onclick = () => {
-      const mac = btn.dataset.mac;
-      const d = devices.find(x=>x.mac===mac) || {};
-      document.getElementById('sel-device').value=mac;
-      document.getElementById('down_kbps').value=d.max_down_kbps||'';
-      document.getElementById('up_kbps').value=d.max_up_kbps||'';
-      document.getElementById('priority_device').checked=!!d.is_priority_device;
-      window.scrollTo({top:0,behavior:'smooth'});
-    };
-  });
-
-  document.querySelectorAll('.btn-clear').forEach(btn=>{
-    btn.onclick = async () => {
-      const mac = btn.dataset.mac;
-      if(!(await Swal.fire({title:'Clear limits for this device?',showCancelButton:true,confirmButtonText:'Clear'})).isConfirmed) return;
-      try{
-        await api('clearLimit',{mac},'POST');
-        await refreshAll();
-        Swal.fire({icon:'success',title:'Cleared',timer:1200,showConfirmButton:false});
-      }catch(e){
-        Swal.fire({icon:'error',title:'Error',text:e.message});
-      }
-    };
-  });
 }
+
+// Delegate clicks for table actions (survives re-renders)
+document.querySelector('#tbl-devices tbody')?.addEventListener('click', async (ev) => {
+  const btnEdit = ev.target.closest?.('button.btn-edit');
+  const btnClear = ev.target.closest?.('button.btn-clear');
+  const mac = (btnEdit || btnClear)?.dataset?.mac;
+  if (!mac) return;
+
+  // snapshot currently-rendered devices list from the last loadDevices call
+  // (we re-fetch for edit to ensure we have latest values)
+  let devices = [];
+  try {
+    const j = await api('getDevices');
+    devices = j.devices || [];
+  } catch {
+    devices = [];
+  }
+  const dev = devices.find(x => String(x.mac).toLowerCase() === String(mac).toLowerCase()) || {};
+
+  const fallbackFillForm = () => {
+    document.getElementById('sel-device').value = mac;
+    document.getElementById('down_kbps').value = dev.max_down_kbps || '';
+    document.getElementById('up_kbps').value = dev.max_up_kbps || '';
+    document.getElementById('priority_device').checked = !!dev.is_priority_device;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (btnEdit) {
+    // Prefer a modal editor for quick edits
+    if (typeof Swal === 'undefined') {
+      fallbackFillForm();
+      return;
+    }
+
+    const { value: formValues } = await Swal.fire({
+      title: 'Edit Bandwidth',
+      html: `
+        <div style="text-align:left">
+          <div style="font-size:13px;margin-bottom:8px;line-height:1.4">
+            <strong>${(dev.name || 'Unknown')}</strong><br>
+            <span style="opacity:.8">${mac} ${dev.ip ? ' • ' + dev.ip : ''}</span>
+          </div>
+          <label style="font-size:13px">Max Download (kbps)</label>
+          <input id="swal-down" class="swal2-input" inputmode="numeric" placeholder="0 = unlimited" value="${dev.max_down_kbps || ''}">
+          <label style="font-size:13px">Max Upload (kbps)</label>
+          <input id="swal-up" class="swal2-input" inputmode="numeric" placeholder="0 = unlimited" value="${dev.max_up_kbps || ''}">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-top:8px">
+            <input id="swal-priority" type="checkbox" ${dev.is_priority_device ? 'checked' : ''}> Priority device
+          </label>
+        </div>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Save',
+      preConfirm: () => {
+        const down = parseInt(document.getElementById('swal-down').value || '0', 10) || 0;
+        const up = parseInt(document.getElementById('swal-up').value || '0', 10) || 0;
+        const pr = document.getElementById('swal-priority').checked;
+        if (down < 0 || up < 0) {
+          Swal.showValidationMessage('Values must be 0 or greater');
+          return;
+        }
+        return { down_kbps: down, up_kbps: up, is_priority_device: pr };
+      }
+    });
+
+    if (!formValues) return;
+    try {
+      await api('setLimit', { mac, ...formValues }, 'POST');
+      await refreshAll();
+      Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false });
+    } catch (e) {
+      Swal.fire({ icon: 'error', title: 'Error', text: e.message });
+    }
+    return;
+  }
+
+  if (btnClear) {
+    const ask = async () => {
+      if (typeof Swal === 'undefined') return confirm('Clear limits for this device?');
+      const res = await Swal.fire({
+        title: 'Clear limits for this device?',
+        text: `${(dev.name || 'Unknown')} (${mac})`,
+        showCancelButton: true,
+        confirmButtonText: 'Clear'
+      });
+      return res.isConfirmed;
+    };
+
+    if (!(await ask())) return;
+    try {
+      await api('clearLimit', { mac }, 'POST');
+      await refreshAll();
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({ icon: 'success', title: 'Cleared', timer: 1200, showConfirmButton: false });
+      }
+    } catch (e) {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({ icon: 'error', title: 'Error', text: e.message });
+      } else {
+        alert('Error: ' + e.message);
+      }
+    }
+  }
+});
 
 async function loadRealtime(){
   const { lines=[] } = await api('getRealtime');
