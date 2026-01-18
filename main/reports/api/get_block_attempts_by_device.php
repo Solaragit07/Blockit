@@ -80,8 +80,8 @@ if ($device !== '') {
 $orderBy = ($sort === 'last') ? 'lastAttempt DESC' : 'attempts DESC';
 
 $deviceLabel = $deviceNameCol
-    ? "COALESCE(NULLIF(d.`$deviceNameCol`, ''), l.`ip_address`, 'Unknown')"
-    : "COALESCE(l.`ip_address`, 'Unknown')";
+    ? "COALESCE(NULLIF(d.`$deviceNameCol`, ''), 'Unknown Device')"
+    : "'Unknown Device'";
 
 $deviceJoin = $deviceHasIpCol
     ? "LEFT JOIN `device` d ON (l.`device_id` = d.`id` OR ((l.`device_id` IS NULL OR l.`device_id`=0) AND l.`ip_address` IS NOT NULL AND l.`ip_address` <> '' AND d.`ip_address` = l.`ip_address`))"

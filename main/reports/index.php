@@ -248,8 +248,8 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
                 <div class="table-wrap">
                   <table class="table" id="tbl-tb">
-                    <thead><tr><th>Website</th><th>Device</th><th>Attempts</th><th>Last Attempt</th></tr></thead>
-                    <tbody><tr><td colspan="4" class="table-empty">Loading…</td></tr></tbody>
+                    <thead><tr><th>Website</th><th>Device</th><th>IP</th><th>Attempts</th><th>Last Attempt</th></tr></thead>
+                    <tbody><tr><td colspan="5" class="table-empty">Loading…</td></tr></tbody>
                   </table>
                 </div>
 
@@ -445,8 +445,8 @@ if (session_status() === PHP_SESSION_NONE) session_start();
   }
 
   function renderTopBlocked(rows){
-    if(!rows||!rows.length)return'<tr><td colspan="4" class="table-empty">No blocked website attempts found</td></tr>';
-    return rows.map(r=>`<tr class="row-bad"><td>${esc(r.site)}</td><td>${esc(r.device || '')}</td><td>${esc(r.attempts)}</td><td>${esc(r.lastAttempt)}</td></tr>`).join('');
+    if(!rows||!rows.length)return'<tr><td colspan="5" class="table-empty">No blocked website attempts found</td></tr>';
+    return rows.map(r=>`<tr class="row-bad"><td>${esc(r.site)}</td><td>${esc(r.device || '')}</td><td>${esc(r.ip || '')}</td><td>${esc(r.attempts)}</td><td>${esc(r.lastAttempt)}</td></tr>`).join('');
   }
 
   async function loadTopBlocked(){
