@@ -99,7 +99,7 @@ $API_KEY = $config['api_key'] ?? '';
                 <div class="table-responsive">
                   <table id="tbl-devices">
                     <thead>
-                      <tr><th>Device</th><th>IP</th><th>Status</th><th>Used</th><th>Actions</th></tr>
+                      <tr><th>Device</th><th>IP</th><th>Status</th><th>Used</th><th>Remaining</th><th>Actions</th></tr>
                     </thead>
                     <tbody></tbody>
                   </table>
@@ -173,15 +173,19 @@ async function loadDevices(){
     const opt=document.createElement('option');
     opt.value=d.mac; opt.textContent=`${d.name||'Unknown'} (${d.mac})`;
     sel.appendChild(opt);
+    const used = Number(d.used ?? 0);
+    const minutes = d.minutes ?? null;
+    const remaining = minutes === null ? null : Math.max(Number(minutes) - used, 0);
     const tr=document.createElement('tr');
     tr.innerHTML=`<td>${d.name||'Unknown'}<br><small>${d.mac}</small></td>
       <td>${d.ip||''}</td>
       <td><span class="badge ${d.status==='blocked'?'badge-blocked':'badge-active'}">${d.status||'active'}</span></td>
-      <td>${(d.used??0)}/${d.minutes??'-'} min</td>
+      <td>${used}/${minutes ?? '-'} min</td>
+      <td>${remaining === null ? '-' : `${remaining} min`}</td>
       <td>${
         d.status==='blocked'
         ? `<button class="btn btn-success btn-unblock" data-mac="${d.mac}"><i class="fa-solid fa-unlock"></i> Unblock</button>`
-        : `<em class="help">-</em>`}</td>`;
+        : `<button class="btn btn-ghost btn-block" data-mac="${d.mac}"><i class="fa-solid fa-ban"></i> Block Now</button>`}</td>`;
     tbody.appendChild(tr);
   });
 
@@ -196,6 +200,20 @@ async function loadDevices(){
       try {
         const r = await api('unblock', { mac }, 'POST');
         Swal.fire({icon:'success', title:'Unblocked', text:r.message, timer:1400, showConfirmButton:false});
+        await Promise.all([loadDevices(), loadLogs()]);
+      } catch(e) {
+        Swal.fire({icon:'error', title:'Error', text:e.message});
+      }
+    };
+  });
+
+  document.querySelectorAll('.btn-block').forEach(btn=>{
+    btn.onclick = async () => {
+      const mac = btn.dataset.mac;
+      if(!(await Swal.fire({title:'Block this device now?',showCancelButton:true,confirmButtonText:'Block'})).isConfirmed) return;
+      try {
+        const r = await api('block', { mac }, 'POST');
+        Swal.fire({icon:'success', title:'Blocked', text:r.message, timer:1400, showConfirmButton:false});
         await Promise.all([loadDevices(), loadLogs()]);
       } catch(e) {
         Swal.fire({icon:'error', title:'Error', text:e.message});

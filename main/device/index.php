@@ -207,7 +207,13 @@ async function loadDevices(){
 
     const limits = `${d.max_down_kbps?d.max_down_kbps+' kbps':'∞'} / ${d.max_up_kbps?d.max_up_kbps+' kbps':'∞'}`;
     const priority = d.is_priority_device? '<span class="badge badge-success">Priority</span>' : '<span class="badge">Normal</span>';
-    const now = `<span class="rate">${(d.rx_rate_kbps??0)} / ${(d.tx_rate_kbps??0)} kbps</span>`;
+    const downLimit = Number(d.max_down_kbps) || 0;
+    const upLimit = Number(d.max_up_kbps) || 0;
+    const rxRate = Number(d.rx_rate_kbps) || 0;
+    const txRate = Number(d.tx_rate_kbps) || 0;
+    const remDown = downLimit ? Math.max(downLimit - rxRate, 0) : null;
+    const remUp = upLimit ? Math.max(upLimit - txRate, 0) : null;
+    const now = `<span class="rate">${remDown===null ? '∞' : remDown+' kbps'} / ${remUp===null ? '∞' : remUp+' kbps'}</span>`;
 
     const tr=document.createElement('tr');
     tr.innerHTML = `

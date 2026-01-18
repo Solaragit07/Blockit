@@ -95,16 +95,20 @@ if ($deviceId !== null) {
 $orderBy = ($sort === 'last') ? 'lastAttempt DESC' : 'attempts DESC';
 
 $deviceSelect = $deviceNameCol ? "COALESCE(d.`$deviceNameCol`, '')" : "''";
+$deviceLabel = $deviceNameCol
+    ? "COALESCE(NULLIF(d.`$deviceNameCol`, ''), l.`ip_address`, 'Unknown')"
+    : "COALESCE(l.`ip_address`, 'Unknown')";
 
 $sql = "SELECT
             l.`domain` AS site,
+            $deviceLabel AS device,
             COUNT(*) AS attempts,
             MAX(l.`date`) AS lastAttempt,
             $deviceSelect AS deviceName
         FROM `logs` l
         LEFT JOIN `device` d ON l.`device_id` = d.`id`
         WHERE " . implode(' AND ', $where) . "
-        GROUP BY l.`domain`
+        GROUP BY l.`domain`, l.`device_id`, l.`ip_address`, device
         ORDER BY $orderBy
         LIMIT $limit";
 
@@ -126,6 +130,7 @@ $rows = [];
 while ($row = $res->fetch_assoc()) {
     $rows[] = [
         'site' => (string)($row['site'] ?? ''),
+        'device' => (string)($row['device'] ?? ''),
         'attempts' => (int)($row['attempts'] ?? 0),
         'lastAttempt' => (string)($row['lastAttempt'] ?? ''),
         'deviceName' => (string)($row['deviceName'] ?? ''),

@@ -248,8 +248,8 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
                 <div class="table-wrap">
                   <table class="table" id="tbl-tb">
-                    <thead><tr><th>Website</th><th>Attempts</th><th>Last Attempt</th></tr></thead>
-                    <tbody><tr><td colspan="3" class="table-empty">Loading…</td></tr></tbody>
+                    <thead><tr><th>Website</th><th>Device</th><th>Attempts</th><th>Last Attempt</th></tr></thead>
+                    <tbody><tr><td colspan="4" class="table-empty">Loading…</td></tr></tbody>
                   </table>
                 </div>
 
@@ -350,13 +350,13 @@ if (session_status() === PHP_SESSION_NONE) session_start();
   }
 
   function renderTopBlocked(rows){
-    if(!rows||!rows.length)return'<tr><td colspan="3" class="table-empty">No blocked website attempts found</td></tr>';
-    return rows.map(r=>`<tr class="row-bad"><td>${esc(r.site)}</td><td>${esc(r.attempts)}</td><td>${esc(r.lastAttempt)}</td></tr>`).join('');
+    if(!rows||!rows.length)return'<tr><td colspan="4" class="table-empty">No blocked website attempts found</td></tr>';
+    return rows.map(r=>`<tr class="row-bad"><td>${esc(r.site)}</td><td>${esc(r.device || '')}</td><td>${esc(r.attempts)}</td><td>${esc(r.lastAttempt)}</td></tr>`).join('');
   }
 
   async function loadTopBlocked(){
     const tb=document.querySelector('#tbl-tb tbody');
-    tb.innerHTML='<tr><td colspan="3" class="table-empty">Loading…</td></tr>';
+    tb.innerHTML='<tr><td colspan="4" class="table-empty">Loading…</td></tr>';
     const body={
       device:document.getElementById('tb-device').value||'',
       sort:document.getElementById('tb-sort').value||'attempts',
@@ -369,7 +369,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
       if (j && j.ok === false) throw new Error(j.message || 'API error');
       tb.innerHTML=renderTopBlocked(j.rows||[]);
     }catch(e){
-      tb.innerHTML=`<tr><td colspan="3" class="table-empty">Error loading data: ${esc(e.message)}</td></tr>`;
+      tb.innerHTML=`<tr><td colspan="4" class="table-empty">Error loading data: ${esc(e.message)}</td></tr>`;
     }
   }
 

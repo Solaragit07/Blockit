@@ -426,6 +426,22 @@ switch ($action) {
     echo json_encode(['ok'=>true,'message'=>'Device unblocked and timer cleared']); exit;
   }
 
+  case 'block': {
+    $mac = strtolower(trim($input['mac'] ?? ''));
+    if (!$mac) { http_response_code(400); echo json_encode(['ok'=>false,'message'=>'MAC required']); exit; }
+    try { block_device($mac); } catch (\Throwable $e) { log_event("Error blocking $mac: ".$e->getMessage()); }
+    $rec = $state[$mac] ?? [
+      'type'=>null, 'minutes'=>null, 'used'=>0.0,
+      'status'=>'active', 'alerted'=>false, 'last_ts'=>now(),
+    ];
+    $rec['status'] = 'blocked';
+    $rec['last_ts'] = now();
+    $state[$mac] = $rec;
+    save_state($state);
+    log_event("Device $mac blocked manually");
+    echo json_encode(['ok'=>true,'message'=>'Device blocked']); exit;
+  }
+
   case 'getLogs': {
     $lines = is_file($LOG_FILE) ? file($LOG_FILE) : [];
     echo json_encode(['ok'=>true,'logs'=>$lines]); exit;
