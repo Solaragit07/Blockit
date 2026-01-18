@@ -44,7 +44,25 @@ function load_state(): array {
 }
 function save_state(array $s): void {
   global $STATE_FILE;
-  @file_put_contents($STATE_FILE, json_encode($s, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));
+  $json = json_encode($s, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+  if (!is_string($json)) {
+    throw new RuntimeException('Failed to encode state JSON');
+  }
+  $ok = @file_put_contents($STATE_FILE, $json, LOCK_EX);
+  if ($ok === false) {
+    throw new RuntimeException('Failed to write state file: '.$STATE_FILE);
+  }
+}
+
+function period_key(string $type, ?int $ts = null): string {
+  $ts = $ts ?? time();
+  $type = strtolower(trim($type));
+  if ($type === 'weekly') {
+    // ISO year-week, e.g. 2026-W03
+    return date('o-\\WW', $ts);
+  }
+  // daily default
+  return date('Y-m-d', $ts);
 }
 
 /**
@@ -216,6 +234,12 @@ function block_device(string $mac): void {
       log_event("Disabled DHCP lease for $mac (.id=$id)");
     }
     ensure_block_rule($api, $mac);
+
+    // Make block effective immediately (kill existing sessions)
+    $row = find_lease_row_by_mac($api, $mac);
+    $ip  = is_array($row) ? ($row['address'] ?? null) : null;
+    flush_arp_and_conn($api, $ip, $mac);
+    wifi_kick_if_wlan12($api, $mac);
   } finally { $api->close(); }
 }
 function flush_arp_and_conn(RouterOSClient $api, ?string $ip, ?string $mac): void {
@@ -273,6 +297,21 @@ function accrue_usage(array &$state, string $mac, $pdo): void {
   $rec = $state[$mac] ?? null;
   if (!$rec || ($rec['status'] ?? 'active') !== 'active') return;
 
+  // Reset counters when period changes (daily/weekly)
+  $type = (string)($rec['type'] ?? 'daily');
+  $curPeriod = period_key($type);
+  $prevPeriod = (string)($rec['period'] ?? '');
+  if ($prevPeriod !== '' && $prevPeriod !== $curPeriod) {
+    $state[$mac]['used'] = 0.0;
+    $state[$mac]['alerted'] = false;
+    $state[$mac]['status'] = 'active';
+    $state[$mac]['last_ts'] = now();
+    $state[$mac]['period'] = $curPeriod;
+    log_event("Reset usage for $mac (period $prevPeriod -> $curPeriod)");
+  } elseif ($prevPeriod === '') {
+    $state[$mac]['period'] = $curPeriod;
+  }
+
   $last = (int)($rec['last_ts'] ?? 0);
   $now  = now();
   $deltaSec = max(0, $now - $last);
@@ -303,7 +342,15 @@ function accrue_usage(array &$state, string $mac, $pdo): void {
 }
 
 // ---------- API key auth ----------
-if (($_SERVER['HTTP_X_API_KEY'] ?? '') !== ($config['api_key'] ?? '')) {
+// Allow header or query param fallback (useful for cron jobs)
+$EXPECTED_KEY = (string)($config['api_key'] ?? '');
+$RECEIVED_KEY = (string)($_SERVER['HTTP_X_API_KEY'] ?? '');
+if ($RECEIVED_KEY === '' && isset($_GET['api_key'])) {
+  $RECEIVED_KEY = (string)$_GET['api_key'];
+}
+
+// Allow CLI runs without auth
+if (PHP_SAPI !== 'cli' && $EXPECTED_KEY !== '' && !hash_equals($EXPECTED_KEY, $RECEIVED_KEY)) {
   http_response_code(401);
   echo json_encode(['ok'=>false,'message'=>'Unauthorized']); exit;
 }
@@ -313,6 +360,7 @@ $action = $_GET['action'] ?? '';
 $input  = json_decode(file_get_contents('php://input'), true) ?? [];
 $state  = load_state();
 
+try {
 switch ($action) {
   case 'whoami': {
     $email = current_user_email($pdo, 'admin@blockit.site');
@@ -358,6 +406,7 @@ switch ($action) {
     $state[$mac] = [
       'type'=>$type, 'minutes'=>$minutes, 'used'=>0.0,
       'status'=>'active', 'alerted'=>false, 'last_ts'=>now(),
+      'period'=>period_key((string)$type),
     ];
     save_state($state);
     log_event("Set {$type} limit {$minutes} min for {$mac}");
@@ -447,5 +496,11 @@ switch ($action) {
     echo json_encode(['ok'=>true,'logs'=>$lines]); exit;
   }
 }
-
 echo json_encode(['ok'=>false,'message'=>'Unknown action']);
+
+} catch (Throwable $e) {
+  log_event('API error: '.$e->getMessage());
+  http_response_code(500);
+  echo json_encode(['ok'=>false,'message'=>'Server error: '.$e->getMessage()]);
+  exit;
+}
