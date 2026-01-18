@@ -9,6 +9,26 @@ header('Content-Type: application/json');
 
 function jexit(array $arr): void { echo json_encode($arr); exit; }
 
+function resolve_domain_to_ip(string $host, array &$cache): string {
+    $host = trim($host);
+    if ($host === '') {
+        return $host;
+    }
+    if (filter_var($host, FILTER_VALIDATE_IP)) {
+        return $host;
+    }
+    if (isset($cache[$host])) {
+        return $cache[$host];
+    }
+    $ip = gethostbyname($host);
+    if ($ip === $host || !filter_var($ip, FILTER_VALIDATE_IP)) {
+        $cache[$host] = $host;
+        return $host;
+    }
+    $cache[$host] = $ip;
+    return $ip;
+}
+
 $APP_ROOT = dirname(__DIR__, 3);
 
 require_once $APP_ROOT . '/loginverification.php';
@@ -127,9 +147,13 @@ if (!$stmt->execute()) {
 
 $res = $stmt->get_result();
 $rows = [];
+$dnsCache = [];
 while ($row = $res->fetch_assoc()) {
+    $domain = (string)($row['site'] ?? '');
+    $resolved = resolve_domain_to_ip($domain, $dnsCache);
     $rows[] = [
-        'site' => (string)($row['site'] ?? ''),
+        'site' => $resolved,
+        'domain' => $domain,
         'device' => (string)($row['device'] ?? ''),
         'attempts' => (int)($row['attempts'] ?? 0),
         'lastAttempt' => (string)($row['lastAttempt'] ?? ''),
