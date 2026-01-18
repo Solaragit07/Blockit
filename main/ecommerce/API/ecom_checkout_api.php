@@ -10,13 +10,21 @@ header('Content-Type: application/json');
 
 // ---------- Load config + client ----------
 $ROOT = dirname(__DIR__, 3); // .../public_html
+$login = $ROOT . '/loginverification.php';
+if (is_file($login)) {
+  require_once $login;
+}
+
+$isLoggedIn = function_exists('logged_in') ? logged_in() : (isset($_SESSION['user_id']) && !empty($_SESSION['user_id']));
 $config = require $ROOT . '/config/router.php';
 require_once $ROOT . '/includes/routeros_client.php';
 
 // ---------- API key auth ----------
 $hdrKey = trim((string)($_SERVER['HTTP_X_API_KEY'] ?? ''));
 $cfgKey = trim((string)($config['api_key'] ?? getenv('BLOCKIT_API_KEY') ?? ''));
-if ($cfgKey === '' || !hash_equals($cfgKey, $hdrKey)) {
+
+$isKeyOk = ($cfgKey !== '' && hash_equals($cfgKey, $hdrKey));
+if (!$isLoggedIn && !$isKeyOk) {
   http_response_code(401);
   echo json_encode(['ok'=>false,'message'=>'Unauthorized']);
   exit;
