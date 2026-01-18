@@ -149,6 +149,7 @@ $deviceCols = [];
 if ($deviceColsRes) {
     while ($c = $deviceColsRes->fetch_assoc()) $deviceCols[$c['Field']] = true;
 }
+$deviceHasIpCol = isset($deviceCols['ip_address']);
 $deviceNameCol = null;
 foreach (['device_name','name','device'] as $cand) {
     if (isset($deviceCols[$cand])) { $deviceNameCol = $cand; break; }
@@ -190,6 +191,10 @@ $deviceLabel = $deviceNameCol
     ? "COALESCE(NULLIF(d.`$deviceNameCol`, ''), l.`ip_address`, 'Unknown')"
     : "COALESCE(l.`ip_address`, 'Unknown')";
 
+$deviceJoin = $deviceHasIpCol
+    ? "LEFT JOIN `device` d ON (l.`device_id` = d.`id` OR ((l.`device_id` IS NULL OR l.`device_id`=0) AND l.`ip_address` IS NOT NULL AND l.`ip_address` <> '' AND d.`ip_address` = l.`ip_address`))"
+    : "LEFT JOIN `device` d ON l.`device_id` = d.`id`";
+
 $sql = "SELECT
             l.`domain` AS site,
             $deviceLabel AS device,
@@ -197,7 +202,7 @@ $sql = "SELECT
             MAX(l.`date`) AS lastAttempt,
             $deviceSelect AS deviceName
         FROM `logs` l
-        LEFT JOIN `device` d ON l.`device_id` = d.`id`
+        $deviceJoin
         WHERE " . implode(' AND ', $where) . "
         GROUP BY l.`domain`, l.`device_id`, l.`ip_address`, device
         ORDER BY $orderBy
