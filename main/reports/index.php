@@ -325,10 +325,42 @@ if (session_status() === PHP_SESSION_NONE) session_start();
   </div>
 
   <!-- Scripts -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="/js/sb-admin-2.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+  <script>
+  // Make Reports resilient if a CDN is blocked: ensure jQuery exists before loading SB Admin / Bootstrap.
+  (function(){
+    function load(src, attrs, cb){
+      var s = document.createElement('script');
+      s.src = src;
+      s.async = false;
+      if (attrs) {
+        for (var k in attrs) {
+          if (Object.prototype.hasOwnProperty.call(attrs, k)) s.setAttribute(k, attrs[k]);
+        }
+      }
+      s.onload = function(){ if (cb) cb(null); };
+      s.onerror = function(){ if (cb) cb(new Error('Failed to load ' + src)); };
+      document.head.appendChild(s);
+    }
+
+    function loadUiDeps(){
+      // Bootstrap 4 requires jQuery; bundle includes Popper.
+      load('https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js', {crossorigin:'anonymous', referrerpolicy:'no-referrer'});
+      load('https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js', {crossorigin:'anonymous', referrerpolicy:'no-referrer'});
+      load('/js/sb-admin-2.min.js');
+    }
+
+    if (window.jQuery) {
+      loadUiDeps();
+      return;
+    }
+
+    // Fallback jQuery
+    load('https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js', {crossorigin:'anonymous', referrerpolicy:'no-referrer'}, function(){
+      if (window.jQuery) loadUiDeps();
+    });
+  })();
+  </script>
 
   <script>
   const API_KEY = "c6d93fd745d852657b700d865690c8bee8a5fe66104a6248291d54b1e899e0a5";
