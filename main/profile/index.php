@@ -131,6 +131,11 @@ $SESSION_API_KEY = $_SESSION['blockit_api_key'] ?? '';
     @media (min-width: 900px){
       .two-col{ grid-template-columns: 1fr 1fr; }
     }
+    /* Single-column sections (force one table per row) */
+    .one-col{
+      display:grid; gap:12px;
+      grid-template-columns: 1fr;
+    }
 
     /* Tables: sticky head + horizontal scroll on small screens */
     .scroll{
@@ -246,7 +251,7 @@ $SESSION_API_KEY = $_SESSION['blockit_api_key'] ?? '';
         </div>
 
         <!-- Profiles -->
-        <section class="two-col">
+        <section class="one-col">
           <!-- Left card: create/sync + connected devices -->
           <div class="card">
             <div class="card-hd">
