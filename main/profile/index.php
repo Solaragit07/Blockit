@@ -141,7 +141,8 @@ $SESSION_API_KEY = $_SESSION['blockit_api_key'] ?? '';
       border-radius:10px;
     }
     .mk-table{
-      width:100%; min-width: 600px; /* allow horizontal scroll when narrow */
+      width:100%;
+      table-layout: fixed;
       border-collapse: collapse;
     }
     .mk-table th, .mk-table td{
@@ -151,6 +152,9 @@ $SESSION_API_KEY = $_SESSION['blockit_api_key'] ?? '';
       text-align:left;
       background:#fff;
       vertical-align:middle;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .mk-table thead th{
       position:sticky; top:0; z-index:1;
@@ -158,6 +162,21 @@ $SESSION_API_KEY = $_SESSION['blockit_api_key'] ?? '';
       color: var(--ink);
     }
     .mk-table th:first-child, .mk-table td:first-child { text-align:center; width:36px; }
+
+    /* Allow long MAC lists to wrap while keeping other columns compact */
+    .macs-cell{
+      white-space: normal;
+      word-break: break-all;
+    }
+    .actions-cell{
+      white-space: nowrap;
+    }
+
+    /* Column sizing for profile table */
+    #tbl-profiles th:nth-child(1), #tbl-profiles td:nth-child(1){ width: 26%; }
+    #tbl-profiles th:nth-child(2), #tbl-profiles td:nth-child(2){ width: 16%; }
+    #tbl-profiles th:nth-child(3), #tbl-profiles td:nth-child(3){ width: 38%; }
+    #tbl-profiles th:nth-child(4), #tbl-profiles td:nth-child(4){ width: 20%; }
 
     h3, h4{
       margin: 0 0 .5rem 0;
@@ -561,8 +580,8 @@ async function loadProfiles(){
     <tr>
       <td>${esc(p.name)}</td>
       <td>${esc(p.group)}</td>
-      <td style="font-family:ui-monospace,monospace">${(p.macs||[]).map(m=>`<code>${esc(m)}</code>`).join(', ') || '—'}</td>
-      <td>
+      <td class="macs-cell" style="font-family:ui-monospace,monospace">${(p.macs||[]).map(m=>`<code>${esc(m)}</code>`).join(', ') || '—'}</td>
+      <td class="actions-cell">
         <button class="btn btn-ghost btn-del-prof" data-name="${esc(p.name)}" title="Delete profile">
           <i class="fa-solid fa-trash"></i> Delete
         </button>
