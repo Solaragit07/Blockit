@@ -147,13 +147,39 @@ if (session_status() === PHP_SESSION_NONE) session_start();
       border:1px solid #cfe7ef;
       border-radius:12px;
       overflow:auto;
-      max-height:55vh;          /* mobile-friendly scroll window */
+      max-height:42vh;          /* match Mikrotik profile table height */
     }
-    .table{width:100%; border-collapse:collapse; min-width:560px}
-    .table th,.table td{padding:10px 12px; border-bottom:1px solid #e5f4f8; font-size:14px; text-align:left}
-    .table th{background:rgba(13,202,240,.15); color:var(--ink); position:sticky; top:0; z-index:1}
+    .table{width:100%; border-collapse:collapse; table-layout:fixed}
+    .table th,.table td{
+      padding:10px 12px;
+      border-bottom:1px solid #e5f4f8;
+      font-size:14px;
+      text-align:left;
+      background:#fff;
+      vertical-align:middle;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .table th{background:var(--chip); color:var(--ink); position:sticky; top:0; z-index:1}
     .row-bad{background:rgba(239,68,68,.06)}
     .table-empty{padding:16px; text-align:center; color:#3a5158}
+
+    /* Allow long website/app cells to wrap like Mikrotik profile table */
+    .wrap-cell{white-space:normal; word-break:break-word}
+
+    /* Column sizing for report tables */
+    #tbl-ra th:nth-child(1), #tbl-ra td:nth-child(1){ width:22%; }
+    #tbl-ra th:nth-child(2), #tbl-ra td:nth-child(2){ width:18%; }
+    #tbl-ra th:nth-child(3), #tbl-ra td:nth-child(3){ width:16%; }
+    #tbl-ra th:nth-child(4), #tbl-ra td:nth-child(4){ width:30%; }
+    #tbl-ra th:nth-child(5), #tbl-ra td:nth-child(5){ width:14%; }
+
+    #tbl-tb th:nth-child(1), #tbl-tb td:nth-child(1){ width:34%; }
+    #tbl-tb th:nth-child(2), #tbl-tb td:nth-child(2){ width:22%; }
+    #tbl-tb th:nth-child(3), #tbl-tb td:nth-child(3){ width:18%; }
+    #tbl-tb th:nth-child(4), #tbl-tb td:nth-child(4){ width:10%; }
+    #tbl-tb th:nth-child(5), #tbl-tb td:nth-child(5){ width:16%; }
 
     /* MikroTik module look */
     .mk-card{background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:0 12px 40px rgba(0,0,0,.12); overflow:hidden}
@@ -393,7 +419,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
   function rowActionClass(a){return String(a||'').toLowerCase()==='blocked'?'row-bad':'';}
   function renderRows(rows){
     if(!rows||!rows.length)return'<tr><td colspan="5" class="table-empty">No recent activity</td></tr>';
-    return rows.map(r=>`<tr class=\"${rowActionClass(r.action)}\"><td>${esc(r.time)}</td><td>${esc(r.device_name)}</td><td>${esc(r.device_ip)}</td><td>${esc(r.resource)}</td><td>${esc(r.action ?? '')}</td></tr>`).join('');
+    return rows.map(r=>`<tr class=\"${rowActionClass(r.action)}\"><td>${esc(r.time)}</td><td>${esc(r.device_name)}</td><td>${esc(r.device_ip)}</td><td class=\"wrap-cell\">${esc(r.resource)}</td><td>${esc(r.action ?? '')}</td></tr>`).join('');
   }
 
   function rowKey(r){
@@ -449,7 +475,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
   function renderTopBlocked(rows){
     if(!rows||!rows.length)return'<tr><td colspan="5" class="table-empty">No blocked website attempts found</td></tr>';
-    return rows.map(r=>`<tr class="row-bad"><td>${esc(r.site)}</td><td>${esc(r.device || '')}</td><td>${esc(r.ip || '')}</td><td>${esc(r.attempts)}</td><td>${esc(r.lastAttempt)}</td></tr>`).join('');
+    return rows.map(r=>`<tr class="row-bad"><td class="wrap-cell">${esc(r.site)}</td><td>${esc(r.device || '')}</td><td>${esc(r.ip || '')}</td><td>${esc(r.attempts)}</td><td>${esc(r.lastAttempt)}</td></tr>`).join('');
   }
 
   async function loadTopBlocked(opts={showLoading:true}){
@@ -540,7 +566,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
   function renderRecentBlocked(rows){
     if(!rows||!rows.length)return'<tr><td colspan="5" class="table-empty">No blocked attempts yet</td></tr>';
-    return rows.map(r=>`<tr class="row-bad"><td>${esc(r.time)}</td><td>${esc(r.device||'')}</td><td>${esc(r.ip||'')}</td><td>${esc(r.site||'')}</td><td>${esc(r.reason||'')}</td></tr>`).join('');
+    return rows.map(r=>`<tr class="row-bad"><td>${esc(r.time)}</td><td>${esc(r.device||'')}</td><td>${esc(r.ip||'')}</td><td class="wrap-cell">${esc(r.site||'')}</td><td>${esc(r.reason||'')}</td></tr>`).join('');
   }
 
   let recentBlockedLoadedOnce = false;
