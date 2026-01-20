@@ -397,6 +397,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
   const RECENT_BLOCKED_URL = "/main/reports/api/get_recent_blocked_attempts.php";
   const BLOCKED_BY_DEVICE_URL = "/main/reports/api/get_block_attempts_by_device.php";
   let recentRows = [];
+  let recentFilterKey = '';
 
   const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
@@ -470,11 +471,17 @@ if (session_status() === PHP_SESSION_NONE) session_start();
       tb.innerHTML='<tr><td colspan="5" class="table-empty">Loading…</td></tr>';
     }
     const body={device:document.getElementById('ra-device').value||'',action:document.getElementById('ra-action').value||'',since:document.getElementById('ra-since').value||'',until:document.getElementById('ra-until').value||'',limit:200};
+    const filterKey = JSON.stringify(body);
     try{
       const j=await getJSON(RECENT_URL,body);
       if (j && j.ok === false) throw new Error(j.message || 'API error');
-      const merged = mergeRows(recentRows, j.rows || [], 200);
-      recentRows = merged;
+      if (filterKey !== recentFilterKey) {
+        recentRows = j.rows || [];
+        recentFilterKey = filterKey;
+      } else {
+        const merged = mergeRows(recentRows, j.rows || [], 200);
+        recentRows = merged;
+      }
       tb.innerHTML=renderRows(recentRows);
       recentLoadedOnce = true;
     }catch(e){
