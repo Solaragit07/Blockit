@@ -416,10 +416,21 @@ if (session_status() === PHP_SESSION_NONE) session_start();
     }
   }
 
-  function rowActionClass(a){return String(a||'').toLowerCase()==='blocked'?'row-bad':'';}
+  function normalizeAction(a){
+    const v = String(a ?? '').trim();
+    if (!v) return 'Accessible';
+    const low = v.toLowerCase();
+    if (low.includes('block')) return 'Blocked';
+    if (low.includes('allow')) return 'Allowed';
+    if (low.includes('accept') || low.includes('permit')) return 'Allowed';
+    return v;
+  }
+  function rowActionClass(a){
+    return normalizeAction(a).toLowerCase() === 'blocked' ? 'row-bad' : '';
+  }
   function renderRows(rows){
     if(!rows||!rows.length)return'<tr><td colspan="5" class="table-empty">No recent activity</td></tr>';
-    return rows.map(r=>`<tr class=\"${rowActionClass(r.action)}\"><td>${esc(r.time)}</td><td>${esc(r.device_name)}</td><td>${esc(r.device_ip)}</td><td class=\"wrap-cell\">${esc(r.resource)}</td><td>${esc(r.action ?? '')}</td></tr>`).join('');
+    return rows.map(r=>`<tr class=\"${rowActionClass(r.action)}\"><td>${esc(r.time)}</td><td>${esc(r.device_name)}</td><td>${esc(r.device_ip)}</td><td class=\"wrap-cell\">${esc(r.resource)}</td><td>${esc(normalizeAction(r.action))}</td></tr>`).join('');
   }
 
   function rowKey(r){
