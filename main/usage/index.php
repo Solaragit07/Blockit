@@ -203,13 +203,12 @@ async function loadDevices(){
       <td>${remaining === null ? 'Not set' : `${remaining} min`}</td>
       <td>${(() => {
         const mac = d.mac;
-        const blockBtn = d.status==='blocked'
-          ? `<button type="button" class="btn btn-success btn-unblock" data-mac="${mac}"><i class="fa-solid fa-unlock"></i> Unblock</button>`
-          : `<button type="button" class="btn btn-ghost btn-block" data-mac="${mac}"><i class="fa-solid fa-ban"></i> Block Now</button>`;
+        const unblockBtn = `<button type="button" class="btn ${d.status==='blocked' ? 'btn-success' : 'btn-ghost'} btn-unblock" data-mac="${mac}"><i class="fa-solid fa-unlock"></i> Unblock</button>`;
+        const blockBtn = `<button type="button" class="btn btn-ghost btn-block" data-mac="${mac}"><i class="fa-solid fa-ban"></i> Block Now</button>`;
         const setBtn = (minutes === null)
           ? ` <button type="button" class="btn btn-success btn-set" data-mac="${mac}"><i class="fa-solid fa-clock"></i> Set Limit</button>`
           : '';
-        return blockBtn + setBtn;
+        return (d.status==='blocked' ? unblockBtn : (blockBtn + ' ' + unblockBtn)) + setBtn;
       })()}</td>`;
     tbody.appendChild(tr);
   });
@@ -222,6 +221,8 @@ async function loadDevices(){
   document.querySelectorAll('.btn-unblock').forEach(btn=>{
     btn.onclick = async () => {
       const mac = btn.dataset.mac;
+      const ok = await uiConfirm('Unblock this device?', mac, 'Unblock');
+      if(!ok) return;
       try {
         const r = await api('unblock', { mac }, 'POST');
         if (hasSwal()) Swal.fire({icon:'success', title:'Unblocked', text:r.message, timer:1400, showConfirmButton:false});
