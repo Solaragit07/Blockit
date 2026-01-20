@@ -327,7 +327,7 @@ $SESSION_API_KEY = $_SESSION['blockit_api_key'] ?? '';
         </section>
 
         <!-- Grouped Rules -->
-        <section class="two-col">
+        <section class="one-col">
           <div class="card">
             <div class="card-hd">Over 18 Rules</div>
 
