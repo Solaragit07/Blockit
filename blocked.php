@@ -25,10 +25,10 @@ function blockit_get_client_ip(): string {
 function blockit_norm_site(string $v): string {
     $v = trim($v);
     if ($v === '') return '';
-    if (str_contains($v, '://')) {
+    if (strpos($v, '://') !== false) {
         $h = parse_url($v, PHP_URL_HOST);
         if (is_string($h) && $h !== '') $v = $h;
-    } elseif (str_contains($v, '/')) {
+    } elseif (strpos($v, '/') !== false) {
         $h = parse_url('http://' . $v, PHP_URL_HOST);
         if (is_string($h) && $h !== '') $v = $h;
     }

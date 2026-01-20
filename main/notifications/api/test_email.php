@@ -4,16 +4,43 @@
 
 declare(strict_types=1);
 ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+error_reporting(E_ALL);
 header('Content-Type: application/json');
 
 function jexit(array $arr): void { echo json_encode($arr); exit; }
 
+register_shutdown_function(function () {
+    $err = error_get_last();
+    if (!is_array($err)) return;
+
+    // Fatal-ish types (best effort)
+    $fatalTypes = [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR];
+    if (!in_array((int)($err['type'] ?? 0), $fatalTypes, true)) return;
+
+    if (headers_sent()) return;
+    http_response_code(500);
+    echo json_encode([
+        'ok' => false,
+        'message' => 'Fatal error in test_email.php',
+        'error' => [
+            'type' => (int)($err['type'] ?? 0),
+            'file' => (string)($err['file'] ?? ''),
+            'line' => (int)($err['line'] ?? 0),
+            'message' => (string)($err['message'] ?? ''),
+        ],
+    ]);
+});
+
 // Auto-detect app root to work across different server layouts.
 // We define "app root" as the directory that contains loginverification.php.
 $APP_ROOT = null;
-for ($i = 0; $i <= 8; $i++) {
-    $cand = dirname(__DIR__, $i);
+$cand = __DIR__;
+for ($i = 0; $i <= 10; $i++) {
     if (is_file($cand . '/loginverification.php')) { $APP_ROOT = $cand; break; }
+    $parent = dirname($cand);
+    if ($parent === $cand) break;
+    $cand = $parent;
 }
 if (!is_string($APP_ROOT)) {
     http_response_code(500);
