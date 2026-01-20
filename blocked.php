@@ -1,3 +1,189 @@
+<?php
+// When a child/device hits a blocked site, this page is served.
+// Log the attempt and notify the admin email (with cooldown to avoid spamming).
+
+declare(strict_types=1);
+
+function blockit_get_client_ip(): string {
+    // Prefer router-provided query param, then common forwarded headers, then REMOTE_ADDR
+    foreach (['ip','ip_address'] as $k) {
+        $v = trim((string)($_GET[$k] ?? ''));
+        if ($v !== '' && filter_var($v, FILTER_VALIDATE_IP)) return $v;
+    }
+    foreach (['HTTP_X_FORWARDED_FOR','HTTP_CF_CONNECTING_IP','HTTP_X_REAL_IP'] as $h) {
+        $raw = (string)($_SERVER[$h] ?? '');
+        if ($raw === '') continue;
+        $parts = array_map('trim', explode(',', $raw));
+        foreach ($parts as $p) {
+            if ($p !== '' && filter_var($p, FILTER_VALIDATE_IP)) return $p;
+        }
+    }
+    $ra = (string)($_SERVER['REMOTE_ADDR'] ?? '');
+    return $ra !== '' ? $ra : '0.0.0.0';
+}
+
+function blockit_norm_site(string $v): string {
+    $v = trim($v);
+    if ($v === '') return '';
+    if (str_contains($v, '://')) {
+        $h = parse_url($v, PHP_URL_HOST);
+        if (is_string($h) && $h !== '') $v = $h;
+    } elseif (str_contains($v, '/')) {
+        $h = parse_url('http://' . $v, PHP_URL_HOST);
+        if (is_string($h) && $h !== '') $v = $h;
+    }
+    $v = preg_replace('/:\d+$/', '', $v);
+    $v = strtolower((string)preg_replace('/[^a-z0-9.\-]/i', '', $v));
+    return $v;
+}
+
+function blockit_dedup_should_send(string $key, int $cooldownSeconds = 300): bool {
+    $path = __DIR__ . '/data/blocked_alert_dedup.json';
+    $dir = dirname($path);
+    if (!is_dir($dir)) @mkdir($dir, 0777, true);
+
+    $now = time();
+    $data = [];
+    if (is_file($path)) {
+        $raw = @file_get_contents($path);
+        $decoded = json_decode((string)$raw, true);
+        if (is_array($decoded)) $data = $decoded;
+    }
+
+    // Basic prune
+    if (count($data) > 5000) {
+        asort($data);
+        $data = array_slice($data, -2500, null, true);
+    }
+
+    $last = (int)($data[$key] ?? 0);
+    if ($last > 0 && ($now - $last) < $cooldownSeconds) return false;
+
+    $data[$key] = $now;
+    @file_put_contents($path, json_encode($data, JSON_UNESCAPED_SLASHES), LOCK_EX);
+    return true;
+}
+
+$blocked_site_raw = (string)($_GET['site'] ?? $_GET['url'] ?? ($_SERVER['HTTP_HOST'] ?? 'Unknown'));
+$blocked_site = blockit_norm_site($blocked_site_raw) ?: $blocked_site_raw;
+$mac = strtolower(trim((string)($_GET['mac'] ?? $_GET['mac_address'] ?? '')));
+$ip = blockit_get_client_ip();
+$ua = (string)($_SERVER['HTTP_USER_AGENT'] ?? '');
+$ts = date('Y-m-d H:i:s');
+
+// Attempt DB log + email notify (never break the blocked page rendering).
+try {
+    // DB logging (if DB is available)
+    $conn = null;
+    $connectPath = __DIR__ . '/connectMySql.php';
+    if (is_file($connectPath)) {
+        @require_once $connectPath; // expects $conn (mysqli)
+    }
+
+    // Insert into `logs` table if possible (schema-flexible)
+    if (isset($conn) && $conn instanceof mysqli) {
+        $colsRes = $conn->query("SHOW COLUMNS FROM `logs`");
+        $cols = [];
+        if ($colsRes) {
+            while ($c = $colsRes->fetch_assoc()) $cols[(string)$c['Field']] = true;
+        }
+
+        $fields = [];
+        $placeholders = [];
+        $types = '';
+        $values = [];
+
+        $add = function(string $field, string $type, $value) use (&$fields, &$placeholders, &$types, &$values, $cols) {
+            if (!isset($cols[$field])) return;
+            $fields[] = "`{$field}`";
+            $placeholders[] = '?';
+            $types .= $type;
+            $values[] = $value;
+        };
+
+        // Preferred columns
+        $add('type', 's', 'blocked');
+        $add('domain', 's', (string)$blocked_site);
+        $add('date', 's', (string)$ts);
+        $add('action', 's', 'blocked');
+        $add('reason', 's', 'blocked-site');
+        $add('ip_address', 's', (string)$ip);
+        $add('user_agent', 's', (string)$ua);
+        $add('mac_address', 's', (string)$mac);
+
+        if (!empty($fields)) {
+            $sql = "INSERT INTO `logs` (" . implode(',', $fields) . ") VALUES (" . implode(',', $placeholders) . ")";
+            $stmt = $conn->prepare($sql);
+            if ($stmt) {
+                $stmt->bind_param($types, ...$values);
+                @$stmt->execute();
+                @$stmt->close();
+            }
+        }
+    }
+
+    // Email notify (deduped)
+    $dedupKey = sha1(($mac ?: $ip) . '|' . strtolower((string)$blocked_site));
+    if (blockit_dedup_should_send($dedupKey, 300)) {
+        $deviceLabel = 'Unknown Device';
+
+        if (isset($conn) && $conn instanceof mysqli) {
+            $deviceColsRes = $conn->query("SHOW COLUMNS FROM `device`");
+            $deviceCols = [];
+            if ($deviceColsRes) {
+                while ($c = $deviceColsRes->fetch_assoc()) $deviceCols[(string)$c['Field']] = true;
+            }
+
+            $nameCol = null;
+            foreach (['device_name','name','device'] as $cand) {
+                if (isset($deviceCols[$cand])) { $nameCol = $cand; break; }
+            }
+            $hasMacCol = isset($deviceCols['mac_address']);
+            $hasIpCol = isset($deviceCols['ip_address']);
+
+            if ($nameCol && ($hasMacCol || $hasIpCol)) {
+                if ($hasMacCol && $mac !== '') {
+                    $stmt = $conn->prepare("SELECT `$nameCol` AS nm FROM `device` WHERE `mac_address` = ? LIMIT 1");
+                    if ($stmt) {
+                        $stmt->bind_param('s', $mac);
+                        if (@$stmt->execute()) {
+                            $r = $stmt->get_result();
+                            if ($r && ($row = $r->fetch_assoc()) && !empty($row['nm'])) $deviceLabel = (string)$row['nm'];
+                        }
+                        @$stmt->close();
+                    }
+                }
+                if ($deviceLabel === 'Unknown Device' && $hasIpCol && $ip !== '') {
+                    $stmt = $conn->prepare("SELECT `$nameCol` AS nm FROM `device` WHERE `ip_address` = ? LIMIT 1");
+                    if ($stmt) {
+                        $stmt->bind_param('s', $ip);
+                        if (@$stmt->execute()) {
+                            $r = $stmt->get_result();
+                            if ($r && ($row = $r->fetch_assoc()) && !empty($row['nm'])) $deviceLabel = (string)$row['nm'];
+                        }
+                        @$stmt->close();
+                    }
+                }
+            }
+        }
+
+        $deviceLabel .= " (IP: {$ip}" . ($mac ? ", MAC: {$mac}" : '') . ')';
+
+        $svcPath = __DIR__ . '/includes/EmailNotificationService.php';
+        if (is_file($svcPath)) {
+            @require_once $svcPath;
+            if (class_exists('EmailNotificationService')) {
+                $svc = new EmailNotificationService();
+                // Fire-and-forget best-effort
+                @$svc->sendWebsiteBlockedAlert($deviceLabel, (string)$blocked_site, $ua);
+            }
+        }
+    }
+} catch (Throwable $e) {
+    // never block rendering
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -239,12 +425,7 @@
         <!-- Blocked Site Display -->
         <div class="blocked-site">
             <strong>Blocked Website:</strong><br>
-            <span id="blocked-url">
-                <?php 
-                    $blocked_site = $_GET['site'] ?? $_GET['url'] ?? $_SERVER['HTTP_HOST'] ?? 'Unknown';
-                    echo htmlspecialchars($blocked_site);
-                ?>
-            </span>
+            <span id="blocked-url"><?php echo htmlspecialchars((string)$blocked_site); ?></span>
         </div>
         
         <!-- Information Section -->
