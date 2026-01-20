@@ -20,7 +20,7 @@ class EmailNotificationService
     private function loadAdminDetails()
     {
         try {
-            include __DIR__ . '/../connectMySql.php';
+            require_once __DIR__ . '/../connectMySql.php';
             
             $query = "SELECT email, name FROM admin WHERE user_id = 1 LIMIT 1";
             $result = $conn->query($query);

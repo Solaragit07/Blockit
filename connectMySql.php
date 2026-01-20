@@ -24,16 +24,18 @@ if (!function_exists('log_event')) {
 }
 
 // Email helper (uses PHP mail via msmtp/sendmail)
-function send_notice(string $to, string $subject, string $body, string $from = 'admin@blockit.site'): bool {
-    $headers = [
-        "From: {$from}",
-        "Reply-To: {$from}",
-        "MIME-Version: 1.0",
-        "Content-Type: text/plain; charset=UTF-8",
-        "Content-Transfer-Encoding: 8bit",
-    ];
-    $ok = @mail($to, $subject, $body, implode("\r\n", $headers));
-    if (!$ok) log_event("mail() failed for {$to} / {$subject}");
-    return $ok;
+if (!function_exists('send_notice')) {
+    function send_notice(string $to, string $subject, string $body, string $from = 'admin@blockit.site'): bool {
+        $headers = [
+            "From: {$from}",
+            "Reply-To: {$from}",
+            "MIME-Version: 1.0",
+            "Content-Type: text/plain; charset=UTF-8",
+            "Content-Transfer-Encoding: 8bit",
+        ];
+        $ok = @mail($to, $subject, $body, implode("\r\n", $headers));
+        if (!$ok) log_event("mail() failed for {$to} / {$subject}");
+        return $ok;
+    }
 }
 ?>
