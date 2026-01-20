@@ -90,22 +90,23 @@ class EmailConfig
     
     public static function sendBlockingAlert($to, $deviceName, $blockedSite, $timestamp)
     {
-        $subject = "🚨 BlockIT Alert: Blocked Website Access Attempt";
+        $subject = "🚫 BlockIT: Blocked site access attempt";
         
         $message = "
-        <h2>Blocked Website Access Detected</h2>
-        <p>Someone tried to access a blocked website on your network.</p>
+        <h2>Blocked Website Access Attempt</h2>
+        <p><strong>{$deviceName}</strong> tried to access a blocked website. The attempt was blocked.</p>
         
         <div style='background-color: #f8f9fa; padding: 15px; border-left: 4px solid #dc3545; margin: 20px 0;'>
             <h3>Incident Details:</h3>
             <ul>
                 <li><strong>Device:</strong> {$deviceName}</li>
                 <li><strong>Blocked Site:</strong> {$blockedSite}</li>
+                <li><strong>Status:</strong> Blocked</li>
                 <li><strong>Time:</strong> {$timestamp}</li>
             </ul>
         </div>
         
-        <p>This notification was sent automatically by your BlockIT system to keep you informed of network activity.</p>
+        <p>This notification was sent automatically by your BlockIT system to keep you informed of blocked access attempts.</p>
         ";
         
         return self::sendNotificationEmail($to, $subject, $message);
