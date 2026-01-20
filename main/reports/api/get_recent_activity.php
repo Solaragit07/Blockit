@@ -120,7 +120,7 @@ function detect_action($topics, $message, $extra) {
   if (preg_match('/\b(action=accept|accept\b|allowed\b|permit\b)\b/', $blob)) {
     return 'Allowed';
   }
-  return 'Allowed';
+  return 'Accessible';
 }
 
 // Only keep log lines that are likely device traffic (not wireless/info, not VPN handshakes, etc.)

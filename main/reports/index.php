@@ -163,6 +163,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
     }
     .table th{background:var(--chip); color:var(--ink); position:sticky; top:0; z-index:1}
     .row-bad{background:rgba(239,68,68,.06)}
+    .row-ok{background:rgba(34,197,94,.06)}
     .table-empty{padding:16px; text-align:center; color:#3a5158}
 
     /* Allow long website/app cells to wrap like Mikrotik profile table */
@@ -228,6 +229,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
                     <option value="">Any action</option>
                     <option>Allowed</option>
                     <option>Blocked</option>
+                    <option>Accessible</option>
                   </select>
                   <input type="datetime-local" id="ra-since" class="input"/>
                   <input type="datetime-local" id="ra-until" class="input"/>
@@ -421,12 +423,15 @@ if (session_status() === PHP_SESSION_NONE) session_start();
     if (!v) return 'Accessible';
     const low = v.toLowerCase();
     if (low.includes('block')) return 'Blocked';
-    if (low.includes('allow')) return 'Allowed';
-    if (low.includes('accept') || low.includes('permit')) return 'Allowed';
+    if (low.includes('allow') || low.includes('accept') || low.includes('permit')) return 'Allowed';
+    if (low.includes('access')) return 'Accessible';
     return v;
   }
   function rowActionClass(a){
-    return normalizeAction(a).toLowerCase() === 'blocked' ? 'row-bad' : '';
+    const norm = normalizeAction(a).toLowerCase();
+    if (norm === 'blocked') return 'row-bad';
+    if (norm === 'allowed' || norm === 'accessible') return 'row-ok';
+    return '';
   }
   function renderRows(rows){
     if(!rows||!rows.length)return'<tr><td colspan="5" class="table-empty">No recent activity</td></tr>';
