@@ -10,6 +10,13 @@ function jexit($arr){ echo json_encode($arr); exit; }
 
 $APP_ROOT = dirname(__DIR__, 3);
 
+// Optional DB connection (used to tag blocked domains)
+$blockedDomains = [];
+$connectPath = $APP_ROOT . '/connectMySql.php';
+if (is_file($connectPath)) {
+  try { require_once $connectPath; } catch (Throwable $e) {}
+}
+
 // Load config & client
 $config_file = $APP_ROOT . '/config/router.php';
 $client_file = $APP_ROOT . '/includes/routeros_client.php';
@@ -99,6 +106,73 @@ function extract_domain($text){
   return '';
 }
 
+function normalize_domain($value){
+  $value = trim((string)$value);
+  if ($value === '') return '';
+  if (strpos($value, '://') !== false) {
+    $host = parse_url($value, PHP_URL_HOST);
+    if (is_string($host) && $host !== '') $value = $host;
+  } elseif (strpos($value, '/') !== false) {
+    $host = parse_url('http://' . $value, PHP_URL_HOST);
+    if (is_string($host) && $host !== '') $value = $host;
+  }
+  $value = preg_replace('/:\d+$/', '', $value);
+  $value = strtolower((string)preg_replace('/[^a-z0-9.\-]/i', '', $value));
+  return $value;
+}
+
+function load_blocked_domains($conn, $cachePath, $ttlSeconds = 60){
+  $now = time();
+  if (is_file($cachePath)) {
+    $raw = @file_get_contents($cachePath);
+    $j = json_decode((string)$raw, true);
+    if (is_array($j) && isset($j['ts'], $j['items']) && ($now - (int)$j['ts']) < $ttlSeconds) {
+      return is_array($j['items']) ? $j['items'] : [];
+    }
+  }
+
+  $items = [];
+  if ($conn instanceof mysqli) {
+    $queries = [
+      "SELECT DISTINCT website FROM blocklist WHERE website != '' AND website IS NOT NULL",
+      "SELECT DISTINCT website FROM group_block WHERE website != '' AND website IS NOT NULL",
+      "SELECT DISTINCT domains FROM application_blocks WHERE status = 'active' AND domains != ''"
+    ];
+    foreach ($queries as $q) {
+      $res = @$conn->query($q);
+      if (!$res) continue;
+      while ($row = $res->fetch_assoc()) {
+        $val = trim((string)($row['website'] ?? $row['domains'] ?? ''));
+        if ($val === '' || $val === 'na') continue;
+        if (strpos($val, ',') !== false) {
+          foreach (explode(',', $val) as $p) {
+            $d = normalize_domain($p);
+            if ($d !== '') $items[] = $d;
+          }
+        } else {
+          $d = normalize_domain($val);
+          if ($d !== '') $items[] = $d;
+        }
+      }
+    }
+  }
+
+  $items = array_values(array_unique($items));
+  @file_put_contents($cachePath, json_encode(['ts'=>$now,'items'=>$items], JSON_UNESCAPED_SLASHES), LOCK_EX);
+  return $items;
+}
+
+function is_blocked_domain($host, $blockedDomains){
+  $host = normalize_domain($host);
+  if ($host === '' || empty($blockedDomains)) return false;
+  foreach ($blockedDomains as $d) {
+    if ($d === '') continue;
+    if ($host === $d) return true;
+    if (substr($host, -strlen('.'.$d)) === '.'.$d) return true;
+  }
+  return false;
+}
+
 function ts_pass($since,$until,$time_string){
   if (!$since && !$until) return true;
   $ts = $time_string ? strtotime(str_replace('T',' ', $time_string)) : null;
@@ -150,6 +224,13 @@ function is_device_flow_line($topics, $message, $extra) {
 // ----------------- main -----------------
 
 try {
+  // Load blocked domains list once (cached)
+  $blockedDomains = load_blocked_domains(
+    (isset($conn) && $conn instanceof mysqli) ? $conn : null,
+    $APP_ROOT . '/data/blocked_domains_cache.json',
+    60
+  );
+
   $api = new RouterOSClient($host,$port,$user,$pass,$timeout,$useTls);
 
   // Lookup tables
@@ -257,8 +338,11 @@ try {
     // If still blank and you prefer to show the public IP, uncomment:
     // if ($resource === '' && $dst_ip && !is_private_ip($dst_ip)) $resource = $dst_ip;
 
-    // Action detection + filter (UI)
+    // Action detection + blocked-domain override
     $row_action = detect_action($topics, $message, $extra);
+    if ($row_action !== 'Blocked' && $resource !== '' && is_blocked_domain($resource, $blockedDomains)) {
+      $row_action = 'Blocked';
+    }
     if ($action !== '' && strcasecmp($row_action, $action) !== 0) continue;
 
     // Device filter (UI)
