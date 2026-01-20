@@ -8,15 +8,23 @@ header('Content-Type: application/json');
 
 function jexit(array $arr): void { echo json_encode($arr); exit; }
 
-// __DIR__ = /public_html/main/notifications/api
-// site root is 4 levels up: api -> notifications -> main -> public_html
-$APP_ROOT = dirname(__DIR__, 4);
+// Auto-detect app root to work across different server layouts.
+// We define "app root" as the directory that contains loginverification.php.
+$APP_ROOT = null;
+for ($i = 0; $i <= 8; $i++) {
+    $cand = dirname(__DIR__, $i);
+    if (is_file($cand . '/loginverification.php')) { $APP_ROOT = $cand; break; }
+}
+if (!is_string($APP_ROOT)) {
+    http_response_code(500);
+    jexit([
+        'ok' => false,
+        'message' => 'Server misconfig: loginverification.php not found in parent directories',
+        'hint' => 'Expected file under the web root. Ensure the app is deployed with loginverification.php.'
+    ]);
+}
 
 $loginPath = $APP_ROOT . '/loginverification.php';
-if (!is_file($loginPath)) {
-    http_response_code(500);
-    jexit(['ok' => false, 'message' => 'Server misconfig: loginverification.php not found', 'path' => $loginPath]);
-}
 require_once $loginPath;
 
 if (session_status() === PHP_SESSION_NONE) {
