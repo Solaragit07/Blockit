@@ -21,16 +21,22 @@ class EmailNotificationService
     {
         try {
             require_once __DIR__ . '/../connectMySql.php';
-            
-            $query = "SELECT email, name FROM admin WHERE user_id = 1 LIMIT 1";
-            $result = $conn->query($query);
-            
-            if ($result && $result->num_rows > 0) {
-                $row = $result->fetch_assoc();
-                $this->adminEmail = $row['email'];
-                $this->adminName = $row['name'];
+
+            if (isset($conn) && $conn instanceof mysqli) {
+                $query = "SELECT email, name FROM admin WHERE user_id = 1 LIMIT 1";
+                $result = $conn->query($query);
+
+                if ($result && $result->num_rows > 0) {
+                    $row = $result->fetch_assoc();
+                    $this->adminEmail = $row['email'];
+                    $this->adminName = $row['name'];
+                } else {
+                    // Fallback to SMTP-configured default sender email
+                    $this->adminEmail = EmailConfig::getDefaultRecipientEmail();
+                    $this->adminName = 'BlockIT Admin';
+                }
             } else {
-                // Fallback to SMTP-configured default sender email
+                // No DB connection available; fallback to SMTP-configured default sender email
                 $this->adminEmail = EmailConfig::getDefaultRecipientEmail();
                 $this->adminName = 'BlockIT Admin';
             }
